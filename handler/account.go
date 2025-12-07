@@ -4,9 +4,9 @@ import (
 	"catatan-keuangan/modules/accounts"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -40,8 +40,7 @@ func (h *accountHandler) CreateAccountHandler(c *gin.Context) {
 }
 
 func (h *accountHandler) GetAccountByIDHandler(c *gin.Context) {
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
@@ -64,15 +63,14 @@ func (h *accountHandler) GetAccountByIDHandler(c *gin.Context) {
 }
 
 func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
-	var accountRequest accounts.AccountRequest
+	var accountRequest accounts.AccountUpdateRequest
 	if err := c.ShouldBindJSON(&accountRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Harap isi semua form",
 		})
 		return
 	}
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
@@ -95,8 +93,7 @@ func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
 }
 
 func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
@@ -114,5 +111,28 @@ func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Berhasil menghapus akun",
+	})
+}
+
+func (h *accountHandler) GetAccountByUserIDHandler(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak ditemukan"})
+		return
+	}
+	account, err := h.accountService.FindByUserID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User tidak memiliki akun"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Gagal mengambil akun",
+		})
+		return
+	}
+	accountResponse := accounts.FormatAccountResponse(account)
+	c.JSON(http.StatusOK, gin.H{
+		"data": accountResponse,
 	})
 }

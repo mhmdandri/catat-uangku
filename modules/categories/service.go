@@ -3,6 +3,7 @@ package categories
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -20,26 +21,26 @@ func NewService(repository Repository, db *gorm.DB) *service {
 }
 
 func (s *service) Create(categoryRequest CategoryRequest) (Category, error) {
-	if categoryRequest.GroupID <= 0 && categoryRequest.OwnerUserID <= 0 {
+	if categoryRequest.GroupID == nil && categoryRequest.OwnerUserID == nil {
 		return Category{}, errors.New("group_id atau owner_user_id wajib diisi")
 	}
-	var groupID *int
-	if categoryRequest.GroupID > 0 {
+	var groupID *uuid.UUID
+	if categoryRequest.GroupID != nil {
 		var count int64
-		if err := s.db.Table("groups").Where("id = ?", categoryRequest.GroupID).Count(&count).Error; err != nil {
+		if err := s.db.Table("groups").Where("id = ?", *categoryRequest.GroupID).Count(&count).Error; err != nil {
 			return Category{}, err
 		}
 		if count == 0 {
 			return Category{}, gorm.ErrRecordNotFound
 		}
-		groupID = &categoryRequest.GroupID
+		groupID = categoryRequest.GroupID
 	}
-	var ownerUserID *int
-	if categoryRequest.OwnerUserID > 0 {
-		if err := s.ensureExists("users", categoryRequest.OwnerUserID); err != nil {
+	var ownerUserID *uuid.UUID
+	if categoryRequest.OwnerUserID != nil {
+		if err := s.ensureExists("users", *categoryRequest.OwnerUserID); err != nil {
 			return Category{}, err
 		}
-		ownerUserID = &categoryRequest.OwnerUserID
+		ownerUserID = categoryRequest.OwnerUserID
 	}
 	category := Category{
 		GroupID:     groupID,
@@ -51,7 +52,7 @@ func (s *service) Create(categoryRequest CategoryRequest) (Category, error) {
 	return newCategory, err
 }
 
-func (s *service) ensureExists(table string, id int) error {
+func (s *service) ensureExists(table string, id uuid.UUID) error {
 	var count int64
 	if err := s.db.Table(table).Where("id = ?", id).Count(&count).Error; err != nil {
 		return err

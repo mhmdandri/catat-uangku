@@ -1,26 +1,20 @@
 package categories
 
+import "github.com/google/uuid"
+
 type CategoryResponse struct {
-	ID          int    `json:"id"`
-	GroupID     int    `json:"group_id"`
-	OwnerUserID int    `json:"owner_user_id"`
-	Name        string `json:"name"`
-	Type        string `json:"type"`
+	ID          uuid.UUID  `json:"id"`
+	GroupID     *uuid.UUID `json:"group_id"`
+	OwnerUserID *uuid.UUID `json:"owner_user_id"`
+	Name        string     `json:"name"`
+	Type        string     `json:"type"`
 }
 
 func FormatCategoryResponse(category Category) CategoryResponse {
-	var groupID, ownerID int
-	if category.GroupID != nil {
-		groupID = *category.GroupID
-	}
-	if category.OwnerUserID != nil {
-		ownerID = *category.OwnerUserID
-	}
-
 	return CategoryResponse{
 		ID:          category.ID,
-		GroupID:     groupID,
-		OwnerUserID: ownerID,
+		GroupID:     category.GroupID,
+		OwnerUserID: category.OwnerUserID,
 		Name:        category.Name,
 		Type:        category.Type,
 	}

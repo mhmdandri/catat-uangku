@@ -3,9 +3,9 @@ package handler
 import (
 	"catatan-keuangan/modules/groups"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type groupHandler struct {
@@ -31,14 +31,20 @@ func (h *groupHandler) CreateGroupHandler(c *gin.Context) {
 		})
 		return
 	}
+	formatNewGroup := groups.FormatGroupResponse(newGroup)
 	c.JSON(http.StatusCreated, gin.H{
-		"data": newGroup,
+		"data": formatNewGroup,
 	})
 }
 
 func (h *groupHandler) GetGroupByIDHandler(c *gin.Context) {
-	idString := c.Param("id")
-	id, _ := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "id tidak valid",
+		})
+		return
+	}
 	groupData, err := h.groupService.FindByID(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -49,5 +55,28 @@ func (h *groupHandler) GetGroupByIDHandler(c *gin.Context) {
 	grouResponse := groups.FormatGroupResponse(groupData)
 	c.JSON(http.StatusOK, gin.H{
 		"data": grouResponse,
+	})
+}
+
+func (h *groupHandler) GetGroupByUserID(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
+		return
+	}
+	groupsData, err := h.groupService.FindGroupByUserID(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Gagal mengambil group untuk user tersebut",
+		})
+		return
+	}
+	var groupsResponse []groups.GroupResponse
+	for _, group := range groupsData {
+		groupResp := groups.FormatGroupResponse(group)
+		groupsResponse = append(groupsResponse, groupResp)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": groupsResponse,
 	})
 }

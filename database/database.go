@@ -36,6 +36,9 @@ func ConnectDB() {
 		log.Fatal("Gagal membuat koneksi ke database", err)
 	}
 	DB = db
+	if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
+		log.Fatal("Gagal mengaktifkan ekstensi uuid-ossp", err)
+	}
 	err = db.AutoMigrate(
 		&users.User{},
 		&accounts.Account{},

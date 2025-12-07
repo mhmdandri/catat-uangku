@@ -1,10 +1,14 @@
 package groups
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Repository interface {
 	Create(group Group) (Group, error)
-	FindByID(ID int) (Group, error)
+	FindByID(ID uuid.UUID) (Group, error)
+	FindGroupByUserID(userID uuid.UUID) ([]Group, error)
 }
 
 type repository struct {
@@ -20,8 +24,16 @@ func (r *repository) Create(group Group) (Group, error) {
 	return group, err
 }
 
-func (r *repository) FindByID(ID int) (Group, error) {
+func (r *repository) FindByID(ID uuid.UUID) (Group, error) {
 	var group Group
-	err := r.db.Preload("GroupMembers").First(&group, ID).Error
+	err := r.db.Preload("GroupMembers").First(&group, "id = ?", ID).Error
 	return group, err
+}
+
+func (r *repository) FindGroupByUserID(userID uuid.UUID) ([]Group, error) {
+	var groups []Group
+	err := r.db.Joins("JOIN group_members ON group_members.group_id = groups.id").
+		Where("group_members.user_id = ?", userID).
+		Find(&groups).Error
+	return groups, err
 }

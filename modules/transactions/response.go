@@ -3,13 +3,15 @@ package transactions
 import (
 	"catatan-keuangan/modules/attachments"
 	transactionlines "catatan-keuangan/modules/transaction_lines"
+
+	"github.com/google/uuid"
 )
 
 type TransactionResponse struct {
-	ID               int                                `json:"id"`
-	GroupID          *int                               `json:"group_id"`
-	CategoryID       int                                `json:"category_id"`
-	CreatedByUserID  int                                `json:"created_by_user_id"`
+	ID               uuid.UUID                          `json:"id"`
+	GroupID          *uuid.UUID                         `json:"group_id"`
+	CategoryID       uuid.UUID                          `json:"category_id"`
+	CreatedByUserID  uuid.UUID                          `json:"created_by_user_id"`
 	Date             string                             `json:"date"`
 	Type             string                             `json:"type"`
 	TotalAmount      float64                            `json:"total_amount"`

@@ -1,11 +1,13 @@
 package attachments
 
+import "github.com/google/uuid"
+
 type AttachmentResponse struct {
-	ID            int    `json:"id"`
-	TransactionID int    `json:"transaction_id"`
-	FileName      string `json:"file_name"`
-	FileURL       string `json:"file_url"`
-	UploadedAt    string `json:"uploaded_at"`
+	ID            uuid.UUID `json:"id"`
+	TransactionID uuid.UUID `json:"transaction_id"`
+	FileName      string    `json:"file_name"`
+	FileURL       string    `json:"file_url"`
+	UploadedAt    string    `json:"uploaded_at"`
 }
 
 func FormatAttachmentResponse(att Attachment) AttachmentResponse {

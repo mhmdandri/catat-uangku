@@ -4,12 +4,14 @@ import (
 	groupmembers "catatan-keuangan/modules/group_members"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Service interface {
 	Create(groupRequest GroupRequest) (Group, error)
-	FindByID(ID int) (Group, error)
+	FindByID(ID uuid.UUID) (Group, error)
+	FindGroupByUserID(userID uuid.UUID) ([]Group, error)
 }
 
 type service struct {
@@ -52,7 +54,12 @@ func (s *service) Create(groupRequest GroupRequest) (Group, error) {
 	return newGroup, err
 }
 
-func (s *service) FindByID(ID int) (Group, error) {
+func (s *service) FindByID(ID uuid.UUID) (Group, error) {
 	group, err := s.repository.FindByID(ID)
 	return group, err
+}
+
+func (s *service) FindGroupByUserID(userID uuid.UUID) ([]Group, error) {
+	groups, err := s.repository.FindGroupByUserID(userID)
+	return groups, err
 }

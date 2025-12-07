@@ -1,10 +1,13 @@
 package accounts
 
+import "github.com/google/uuid"
+
 type Service interface {
 	Create(accountRequest AccountRequest) (Account, error)
-	FindByID(ID int) (Account, error)
-	Update(ID int, accountRequest AccountRequest) (Account, error)
-	Delete(ID int) (Account, error)
+	FindByID(ID uuid.UUID) (Account, error)
+	Update(ID uuid.UUID, accountRequest AccountUpdateRequest) (Account, error)
+	Delete(ID uuid.UUID) (Account, error)
+	FindByUserID(userID uuid.UUID) (Account, error)
 }
 
 type service struct {
@@ -30,31 +33,35 @@ func (s *service) Create(accountRequest AccountRequest) (Account, error) {
 	return newAccount, err
 }
 
-func (s *service) FindByID(ID int) (Account, error) {
+func (s *service) FindByID(ID uuid.UUID) (Account, error) {
 	user, err := s.repository.FindByID(ID)
 	return user, err
 }
 
-func (s *service) Update(ID int, accountRequest AccountRequest) (Account, error) {
+func (s *service) Update(ID uuid.UUID, accountRequest AccountUpdateRequest) (Account, error) {
 	account, err := s.repository.FindByID(ID)
 	if err != nil {
 		return Account{}, err
 	}
-	account.OwnerUserID = accountRequest.OwnerUserID
-	account.GroupID = accountRequest.GroupID
 	account.Name = accountRequest.Name
 	account.Type = accountRequest.Type
-	account.Currency = accountRequest.Currency
-	account.Scope = accountRequest.Scope
 	account.IsShared = accountRequest.IsShared
 	account.IsActive = accountRequest.IsActive
 	return s.repository.Update(account)
 }
 
-func (s *service) Delete(ID int) (Account, error) {
+func (s *service) Delete(ID uuid.UUID) (Account, error) {
 	account, err := s.repository.FindByID(ID)
 	if err != nil {
 		return Account{}, err
 	}
 	return s.repository.Delete(account)
+}
+
+func (s *service) FindByUserID(userID uuid.UUID) (Account, error) {
+	userAccount, err := s.repository.FindByUserID(userID)
+	if err != nil {
+		return Account{}, err
+	}
+	return userAccount, err
 }

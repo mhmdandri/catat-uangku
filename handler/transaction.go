@@ -4,9 +4,9 @@ import (
 	"catatan-keuangan/modules/transactions"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -53,8 +53,7 @@ func (h *transactionHandler) GetAllTransactions(c *gin.Context) {
 }
 
 func (h *transactionHandler) GetTransactionByID(c *gin.Context) {
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return

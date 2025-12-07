@@ -1,15 +1,17 @@
 package accounts
 
+import "github.com/google/uuid"
+
 type AccountResponse struct {
-	ID          int    `json:"id"`
-	OwnerUserID int    `json:"owner_user_id"`
-	GroupID     int    `json:"group_id"`
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	Currency    string `json:"currency"`
-	Scope       string `json:"scope"`
-	IsShared    bool   `json:"is_shared"`
-	IsActive    bool   `json:"is_active"`
+	ID          uuid.UUID  `json:"id"`
+	OwnerUserID uuid.UUID  `json:"owner_user_id"`
+	GroupID     *uuid.UUID `json:"group_id"`
+	Name        string     `json:"name"`
+	Type        string     `json:"type"`
+	Currency    string     `json:"currency"`
+	Scope       string     `json:"scope"`
+	IsShared    bool       `json:"is_shared"`
+	IsActive    bool       `json:"is_active"`
 }
 
 func FormatAccountResponse(account Account) AccountResponse {

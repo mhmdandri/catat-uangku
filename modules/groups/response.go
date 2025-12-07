@@ -1,9 +1,13 @@
 package groups
 
-import groupmembers "catatan-keuangan/modules/group_members"
+import (
+	groupmembers "catatan-keuangan/modules/group_members"
+
+	"github.com/google/uuid"
+)
 
 type GroupResponse struct {
-	ID      int                                `json:"id"`
+	ID      uuid.UUID                          `json:"id"`
 	Name    string                             `json:"name"`
 	Type    string                             `json:"type"`
 	Members []groupmembers.GroupMemberResponse `json:"members,omitempty"`

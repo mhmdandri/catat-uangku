@@ -2,15 +2,17 @@ package users
 
 import (
 	"errors"
+
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
 	FindAll() ([]User, error)
-	FindByID(ID int) (User, error)
+	FindByID(ID uuid.UUID) (User, error)
 	Create(userRequest UserRequest) (User, error)
-	Update(ID int, userRequest UserRequest) (User, error)
-	Delete(ID int) (User, error)
+	Update(ID uuid.UUID, userRequest UserRequest) (User, error)
+	Delete(ID uuid.UUID) (User, error)
 }
 
 type service struct {
@@ -25,7 +27,7 @@ func (s *service) FindAll() ([]User, error) {
 	return s.repository.FindAll()
 }
 
-func (s *service) FindByID(ID int) (User, error) {
+func (s *service) FindByID(ID uuid.UUID) (User, error) {
 	return s.repository.FindByID(ID)
 }
 
@@ -42,7 +44,7 @@ func (s *service) Create(userRequest UserRequest) (User, error) {
 	return s.repository.Create(user)
 }
 
-func (s *service) Update(ID int, userRequest UserRequest) (User, error) {
+func (s *service) Update(ID uuid.UUID, userRequest UserRequest) (User, error) {
 	user, err := s.repository.FindByID(ID)
 	if err != nil {
 		return User{}, err
@@ -57,7 +59,7 @@ func (s *service) Update(ID int, userRequest UserRequest) (User, error) {
 	return s.repository.Update(user)
 }
 
-func (s *service) Delete(ID int) (User, error) {
+func (s *service) Delete(ID uuid.UUID) (User, error) {
 	user, err := s.repository.FindByID(ID)
 	if err != nil {
 		return User{}, err

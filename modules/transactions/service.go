@@ -6,15 +6,15 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Service interface {
 	Create(transactionReq TransactionRequest) (Transactions, error)
-	FindByID(ID int) (Transactions, error)
+	FindByID(ID uuid.UUID) (Transactions, error)
 	FindAll() ([]Transactions, error)
 }
-
 type service struct {
 	repository        Repository
 	db                *gorm.DB
@@ -91,7 +91,7 @@ func (s *service) Create(TransactionRequest TransactionRequest) (Transactions, e
 	return newTransaction, err
 }
 
-func (s *service) FindByID(ID int) (Transactions, error) {
+func (s *service) FindByID(ID uuid.UUID) (Transactions, error) {
 	transaction, err := s.repository.FindByID(ID)
 	return transaction, err
 }
@@ -101,16 +101,16 @@ func (s *service) FindAll() ([]Transactions, error) {
 	return transactions, err
 }
 
-func (s *service) resolveGroupID(tx *gorm.DB, scope string, groupID int) (*int, error) {
+func (s *service) resolveGroupID(tx *gorm.DB, scope string, groupID *uuid.UUID) (*uuid.UUID, error) {
 	switch scope {
 	case "group":
-		if groupID <= 0 {
+		if groupID == nil {
 			return nil, errors.New("group_id wajib diisi untuk scope group")
 		}
-		if err := s.ensureExists(tx, "groups", groupID); err != nil {
+		if err := s.ensureExists(tx, "groups", *groupID); err != nil {
 			return nil, err
 		}
-		return &groupID, nil
+		return groupID, nil
 	case "personal":
 		return nil, nil
 	default:
@@ -118,7 +118,7 @@ func (s *service) resolveGroupID(tx *gorm.DB, scope string, groupID int) (*int, 
 	}
 }
 
-func (s *service) ensureExists(tx *gorm.DB, table string, id int) error {
+func (s *service) ensureExists(tx *gorm.DB, table string, id uuid.UUID) error {
 	var count int64
 	if err := tx.Table(table).Where("id = ?", id).Count(&count).Error; err != nil {
 		return err

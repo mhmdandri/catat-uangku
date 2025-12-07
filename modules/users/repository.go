@@ -1,10 +1,13 @@
 package users
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Repository interface {
 	FindAll() ([]User, error)
-	FindByID(ID int) (User, error)
+	FindByID(ID uuid.UUID) (User, error)
 	Create(user User) (User, error)
 	Update(user User) (User, error)
 	Delete(user User) (User, error)
@@ -24,9 +27,9 @@ func (r *repository) FindAll() ([]User, error) {
 	return users, err
 }
 
-func (r *repository) FindByID(ID int) (User, error) {
+func (r *repository) FindByID(ID uuid.UUID) (User, error) {
 	var user User
-	err := r.db.Preload("Accounts").Preload("GroupMembers").First(&user, ID).Error
+	err := r.db.Preload("Accounts").Preload("GroupMembers").First(&user, "id = ?", ID).Error
 	return user, err
 }
 

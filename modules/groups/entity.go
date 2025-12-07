@@ -5,10 +5,12 @@ import (
 	groupmembers "catatan-keuangan/modules/group_members"
 	"catatan-keuangan/modules/invitations"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Group struct {
-	ID        int       `gorm:"primaryKey;autoIncrement"`
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	Name      string    `gorm:"type:varchar(100);not null"`
 	Type      string    `gorm:"type:varchar(50);not null"`
 	CreatedAt time.Time `json:"created_at"`

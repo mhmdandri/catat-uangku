@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Service interface {
-	SaveFiles(tx *gorm.DB, transactionID int, files []*multipart.FileHeader) ([]Attachment, error)
+	SaveFiles(tx *gorm.DB, transactionID uuid.UUID, files []*multipart.FileHeader) ([]Attachment, error)
 	BuildResponse([]Attachment, string) []AttachmentResponse
 }
 
@@ -26,7 +27,7 @@ func NewService(repository Repository, uploadDir, baseURL string) *service {
 	return &service{repository, uploadDir, baseURL}
 }
 
-func (s *service) SaveFiles(tx *gorm.DB, transactionID int, files []*multipart.FileHeader) ([]Attachment, error) {
+func (s *service) SaveFiles(tx *gorm.DB, transactionID uuid.UUID, files []*multipart.FileHeader) ([]Attachment, error) {
 	if len(files) == 0 {
 		return []Attachment{}, nil
 	}
@@ -40,7 +41,7 @@ func (s *service) SaveFiles(tx *gorm.DB, transactionID int, files []*multipart.F
 			return nil, err
 		}
 		defer src.Close()
-		filename := fmt.Sprintf("%d_%d_%s", transactionID, time.Now().UnixNano(), filepath.Base(fileHeader.Filename))
+		filename := fmt.Sprintf("%s_%d_%s", transactionID.String(), time.Now().UnixNano(), filepath.Base(fileHeader.Filename))
 		dstPath := filepath.Join(s.uploadDir, filename)
 		dst, err := os.Create(dstPath)
 		if err != nil {

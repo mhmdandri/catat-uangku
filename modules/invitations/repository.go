@@ -3,6 +3,7 @@ package invitations
 import (
 	groupmembers "catatan-keuangan/modules/group_members"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -10,7 +11,7 @@ type Repository interface {
 	SendInvitationGroup(invitation Invitation) (Invitation, error)
 	AcceptInvitationGroup(invitation Invitation, member groupmembers.GroupMember) (Invitation, error)
 	FindByToken(token string) (Invitation, error)
-	IsUserAlreadyMember(groupID, userID int) (bool, error)
+	IsUserAlreadyMember(groupID, userID uuid.UUID) (bool, error)
 }
 
 type repository struct {
@@ -45,7 +46,7 @@ func (r *repository) FindByToken(token string) (Invitation, error) {
 	return invitation, err
 }
 
-func (r *repository) IsUserAlreadyMember(groupID, userID int) (bool, error) {
+func (r *repository) IsUserAlreadyMember(groupID, userID uuid.UUID) (bool, error) {
 	var count int64
 	err := r.db.Model(&groupmembers.GroupMember{}).
 		Where("group_id = ? AND user_id = ?", groupID, userID).

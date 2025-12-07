@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -35,8 +35,7 @@ func (h *userHandler) GetAllUsers(c *gin.Context) {
 }
 
 func (h *userHandler) GetUserByID(c *gin.Context) {
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
@@ -80,8 +79,7 @@ func (h *userHandler) PostUserHandler(c *gin.Context) {
 }
 
 func (h *userHandler) DeleteUserHandler(c *gin.Context) {
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
@@ -110,8 +108,7 @@ func (h *userHandler) UpdateUserHandler(c *gin.Context) {
 		})
 		return
 	}
-	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return

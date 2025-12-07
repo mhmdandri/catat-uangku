@@ -47,9 +47,11 @@ func InitRoutes(r *gin.Engine) {
 		v1.GET("/accounts/:id", accountHandler.GetAccountByIDHandler)
 		v1.PUT("/accounts/:id", accountHandler.UpdateAccountHandler)
 		v1.DELETE("/accounts/:id", accountHandler.DeleteAccountHandler)
+		v1.GET("/accounts/user/:id", accountHandler.GetAccountByUserIDHandler)
 
 		v1.POST("/groups", groupHandler.CreateGroupHandler)
 		v1.GET("/groups/:id", groupHandler.GetGroupByIDHandler)
+		v1.GET("/groups/user/:id", groupHandler.GetGroupByUserID)
 
 		v1.POST("/invitations", invitationHandler.SendInvitationGroupHandler)
 		v1.POST("/invitations/accept", invitationHandler.AcceptInvitationGroupHandler)

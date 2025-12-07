@@ -1,8 +1,10 @@
 package categories
 
+import "github.com/google/uuid"
+
 type CategoryRequest struct {
-	GroupID     int    `json:"group_id" binding:"omitempty,gt=0"`
-	OwnerUserID int    `json:"owner_user_id" binding:"omitempty,gt=0"`
-	Name        string `json:"name" binding:"required"`
-	Type        string `json:"type" binding:"required,oneof=income expense"`
+	GroupID     *uuid.UUID `json:"group_id"`
+	OwnerUserID *uuid.UUID `json:"owner_user_id"`
+	Name        string     `json:"name" binding:"required"`
+	Type        string     `json:"type" binding:"required,oneof=income expense"`
 }

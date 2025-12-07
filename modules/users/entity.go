@@ -4,12 +4,13 @@ import (
 	"catatan-keuangan/modules/accounts"
 	groupmembers "catatan-keuangan/modules/group_members"
 	"catatan-keuangan/modules/invitations"
-
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID        int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	Name      string    `gorm:"type:varchar(100);not null" json:"name"`
 	Email     string    `gorm:"type:varchar(100);uniqueIndex;not null" json:"email"`
 	Password  string    `gorm:"type:varchar(255);not null" json:"password"`

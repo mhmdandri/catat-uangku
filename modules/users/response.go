@@ -3,10 +3,12 @@ package users
 import (
 	"catatan-keuangan/modules/accounts"
 	groupmembers "catatan-keuangan/modules/group_members"
+
+	"github.com/google/uuid"
 )
 
 type UserResponse struct {
-	ID           int                                `json:"id"`
+	ID           uuid.UUID                          `json:"id"`
 	Name         string                             `json:"name"`
 	Email        string                             `json:"email"`
 	Accounts     []accounts.AccountResponse         `json:"accounts,omitempty"`

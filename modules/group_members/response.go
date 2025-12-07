@@ -1,12 +1,14 @@
 package groupmembers
 
+import "github.com/google/uuid"
+
 type GroupMemberResponse struct {
-	ID       int    `json:"id"`
-	UserID   int    `json:"user_id"`
-	GroupID  int    `json:"group_id"`
-	Role     string `json:"role"`
-	JoinedAt string `json:"joined_at"`
-	IsActive bool   `json:"is_active"`
+	ID       uuid.UUID `json:"id"`
+	UserID   uuid.UUID `json:"user_id"`
+	GroupID  uuid.UUID `json:"group_id"`
+	Role     string    `json:"role"`
+	JoinedAt string    `json:"joined_at"`
+	IsActive bool      `json:"is_active"`
 }
 
 func FormatGroupMemberResponse(gm GroupMember) GroupMemberResponse {
