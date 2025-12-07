@@ -15,6 +15,10 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBSSLMode  string
+
+	JWTSecret   string
+	JWTIssuer   string
+	JWTAudience string
 }
 
 var Cfg *Config
@@ -32,5 +36,9 @@ func LoadConfig() {
 		DBPassword: os.Getenv("DB_PASSWORD"),
 		DBName:     os.Getenv("DB_NAME"),
 		DBSSLMode:  os.Getenv("DB_SSLMODE"),
+
+		JWTSecret:   os.Getenv("JWT_SECRET"),
+		JWTIssuer:   os.Getenv("JWT_ISSUER"),
+		JWTAudience: os.Getenv("JWT_AUDIENCE"),
 	}
 }

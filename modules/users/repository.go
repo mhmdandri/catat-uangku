@@ -8,6 +8,7 @@ import (
 type Repository interface {
 	FindAll() ([]User, error)
 	FindByID(ID uuid.UUID) (User, error)
+	FindByEmail(email string) (User, error)
 	Create(user User) (User, error)
 	Update(user User) (User, error)
 	Delete(user User) (User, error)
@@ -30,6 +31,12 @@ func (r *repository) FindAll() ([]User, error) {
 func (r *repository) FindByID(ID uuid.UUID) (User, error) {
 	var user User
 	err := r.db.Preload("Accounts").Preload("GroupMembers").First(&user, "id = ?", ID).Error
+	return user, err
+}
+
+func (r *repository) FindByEmail(email string) (User, error) {
+	var user User
+	err := r.db.First(&user, "email = ?", email).Error
 	return user, err
 }
 

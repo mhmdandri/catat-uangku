@@ -3,6 +3,7 @@ package main
 import (
 	"catatan-keuangan/config"
 	"catatan-keuangan/database"
+	"catatan-keuangan/middleware"
 	"catatan-keuangan/routes"
 	"log"
 
@@ -14,6 +15,7 @@ func main() {
 	database.ConnectDB()
 
 	r := gin.Default()
+	r.Use(middleware.CORSMiddleware())
 	r.Static("/uploads", "./uploads")
 	routes.InitRoutes(r)
 	log.Println("Server berjalan di", config.Cfg.AppPort)

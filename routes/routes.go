@@ -3,8 +3,10 @@ package routes
 import (
 	"catatan-keuangan/database"
 	"catatan-keuangan/handler"
+	"catatan-keuangan/middleware"
 	"catatan-keuangan/modules/accounts"
 	"catatan-keuangan/modules/attachments"
+	"catatan-keuangan/modules/auth"
 	"catatan-keuangan/modules/categories"
 	"catatan-keuangan/modules/groups"
 	"catatan-keuangan/modules/invitations"
@@ -35,8 +37,15 @@ func InitRoutes(r *gin.Engine) {
 	attachmentService := attachments.NewService(attachmentRepository, "uploads/attachments", "/uploads/attachments")
 	transactionService := transactions.NewService(transactionRepository, database.DB, attachmentService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
+	refreshRepository := auth.NewRefreshRepository(database.DB)
+	authService := auth.NewService(userRepository, refreshRepository)
+	authHandler := handler.NewAuthHandler(authService)
 	v1 := r.Group("/api/v1")
 	{
+		v1.POST("/auth/login", authHandler.Login)
+		v1.POST("/auth/refresh", authHandler.RefreshToken)
+
+		v1.Use(middleware.AuthMiddleware())
 		v1.GET("/users", userHandler.GetAllUsers)
 		v1.POST("/users", userHandler.PostUserHandler)
 		v1.GET("/users/:id", userHandler.GetUserByID)

@@ -4,6 +4,7 @@ import (
 	"catatan-keuangan/config"
 	"catatan-keuangan/modules/accounts"
 	"catatan-keuangan/modules/attachments"
+	"catatan-keuangan/modules/auth"
 	"catatan-keuangan/modules/categories"
 	groupmembers "catatan-keuangan/modules/group_members"
 	"catatan-keuangan/modules/groups"
@@ -49,6 +50,7 @@ func ConnectDB() {
 		&transactions.Transactions{},
 		&transactionlines.TransactionLine{},
 		&attachments.Attachment{},
+		&auth.RefreshToken{},
 	)
 	if err != nil {
 		log.Fatal("Gagal melakukan migrasi database", err)
