@@ -18,6 +18,26 @@ func NewAuthHandler(authService auth.Service) *authHandler {
 	return &authHandler{authService}
 }
 
+func (h *authHandler) Register(c *gin.Context) {
+	var registerRequest users.UserRequest
+	if err := c.ShouldBindJSON(&registerRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "input tidak valid",
+		})
+		return
+	}
+	user, err := h.authService.Register(registerRequest)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{
+		"data": users.FormatUserResponse(user),
+	})
+}
+
 func (h *authHandler) Login(c *gin.Context) {
 	var loginRequest auth.LoginRequest
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
@@ -26,9 +46,9 @@ func (h *authHandler) Login(c *gin.Context) {
 		})
 		return
 	}
-	access, refresh, user, err := h.authService.Login(loginRequest)
+	access, refresh, _, err := h.authService.Login(loginRequest)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -46,7 +66,7 @@ func (h *authHandler) Login(c *gin.Context) {
 	)
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": access,
-		"user":         users.FormatUserResponse(user),
+		// "user":         users.FormatUserResponse(user),
 	})
 }
 
@@ -56,7 +76,7 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token tidak ada"})
 		return
 	}
-	access, newRefresh, user, err := h.authService.Refresh(rt)
+	access, newRefresh, _, err := h.authService.Refresh(rt)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -67,7 +87,6 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": access,
-		"user":         users.FormatUserResponse(user),
 	})
 }
 

@@ -43,6 +43,7 @@ func InitRoutes(r *gin.Engine) {
 	v1 := r.Group("/api/v1")
 	{
 		v1.POST("/auth/login", authHandler.Login)
+		v1.POST("/auth/register", authHandler.Register)
 		v1.POST("/auth/refresh", authHandler.RefreshToken)
 		v1.POST("/auth/logout", authHandler.Logout)
 

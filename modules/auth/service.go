@@ -17,6 +17,7 @@ type Service interface {
 	Refresh(raw string) (string, string, users.User, error)
 	Me(userID uuid.UUID) (users.User, error)
 	Logout(raw string) error
+	Register(registerRequest users.UserRequest) (users.User, error)
 }
 
 type service struct {
@@ -90,4 +91,25 @@ func (s *service) Logout(raw string) error {
 		return err
 	}
 	return s.refreshRepository.Revoke(rt.ID)
+}
+
+func (s *service) Register(registerRequest users.UserRequest) (users.User, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return users.User{}, err
+	}
+	checkUser, _ := s.userRepository.FindByEmail(registerRequest.Email)
+	if checkUser.ID != uuid.Nil {
+		return users.User{}, errors.New("email sudah terdaftar")
+	}
+	user := users.User{
+		Name:     registerRequest.Name,
+		Email:    registerRequest.Email,
+		Password: string(hashed),
+	}
+	newUser, err := s.userRepository.Create(user)
+	if err != nil {
+		return users.User{}, err
+	}
+	return newUser, err
 }
