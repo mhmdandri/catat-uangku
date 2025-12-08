@@ -8,12 +8,15 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
 	Login(loginRequest LoginRequest) (string, string, users.User, error)
 	Refresh(raw string) (string, string, users.User, error)
+	Me(userID uuid.UUID) (users.User, error)
+	Logout(raw string) error
 }
 
 type service struct {
@@ -56,7 +59,7 @@ func hashRaw(raw string) string {
 }
 
 func (s *service) Refresh(raw string) (string, string, users.User, error) {
-	hash := hashRaw(raw) // gunakan sha256 seperti di generateRawRefresh
+	hash := hashRaw(raw)
 	rt, err := s.refreshRepository.FindValidByHash(hash)
 	if err != nil {
 		return "", "", users.User{}, errors.New("refresh token invalid")
@@ -75,4 +78,16 @@ func (s *service) Refresh(raw string) (string, string, users.User, error) {
 	newRaw, newHash, _ := generateRefresh()
 	s.refreshRepository.Create(RefreshToken{UserID: user.ID, Token: newHash, ExpiresAt: time.Now().Add(7 * 24 * time.Hour), RotatedFrom: &rt.ID})
 	return access, newRaw, user, nil
+}
+
+func (s *service) Me(userID uuid.UUID) (users.User, error) {
+	return s.userRepository.FindByID(userID)
+}
+func (s *service) Logout(raw string) error {
+	hash := hashRaw(raw)
+	rt, err := s.refreshRepository.FindValidByHash(hash)
+	if err != nil {
+		return err
+	}
+	return s.refreshRepository.Revoke(rt.ID)
 }

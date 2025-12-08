@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type authHandler struct {
@@ -45,8 +46,7 @@ func (h *authHandler) Login(c *gin.Context) {
 	)
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": access,
-		// "refresh_token": refresh,
-		"user": users.FormatUserResponse(user),
+		"user":         users.FormatUserResponse(user),
 	})
 }
 
@@ -67,7 +67,41 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": access,
-		// "refresh_token": refresh,
-		"user": users.FormatUserResponse(user),
+		"user":         users.FormatUserResponse(user),
 	})
+}
+
+func (h *authHandler) Me(c *gin.Context) {
+	userIDVal, ok := c.Get("userID")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "userID tidak ditemukan di token"})
+		return
+	}
+	userID, err := uuid.Parse(userIDVal.(string))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "userID tidak valid"})
+		return
+	}
+
+	user, err := h.authService.Me(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": users.FormatUserResponse(user)})
+}
+func (h *authHandler) Logout(c *gin.Context) {
+	rt, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh token tidak ada"})
+		return
+	}
+	if err := h.authService.Logout(rt); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token tidak valid"})
+		return
+	}
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{"message": "logout berhasil"})
 }

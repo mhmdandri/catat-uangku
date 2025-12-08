@@ -44,8 +44,10 @@ func InitRoutes(r *gin.Engine) {
 	{
 		v1.POST("/auth/login", authHandler.Login)
 		v1.POST("/auth/refresh", authHandler.RefreshToken)
+		v1.POST("/auth/logout", authHandler.Logout)
 
 		v1.Use(middleware.AuthMiddleware())
+		v1.GET("/auth/me", authHandler.Me)
 		v1.GET("/users", userHandler.GetAllUsers)
 		v1.POST("/users", userHandler.PostUserHandler)
 		v1.GET("/users/:id", userHandler.GetUserByID)
