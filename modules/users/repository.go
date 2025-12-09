@@ -24,19 +24,19 @@ func NewRepository(db *gorm.DB) *repository {
 
 func (r *repository) FindAll() ([]User, error) {
 	var users []User
-	err := r.db.Preload("Accounts").Preload("GroupMembers").Find(&users).Error
+	err := r.db.Preload("Accounts").Preload("GroupMembers").Preload("Profile").Find(&users).Error
 	return users, err
 }
 
 func (r *repository) FindByID(ID uuid.UUID) (User, error) {
 	var user User
-	err := r.db.Preload("Accounts").Preload("GroupMembers").First(&user, "id = ?", ID).Error
+	err := r.db.Preload("Accounts").Preload("GroupMembers").Preload("Profile").First(&user, "id = ?", ID).Error
 	return user, err
 }
 
 func (r *repository) FindByEmail(email string) (User, error) {
 	var user User
-	err := r.db.First(&user, "email = ?", email).Error
+	err := r.db.Preload("Profile").First(&user, "email = ?", email).Error
 	return user, err
 }
 

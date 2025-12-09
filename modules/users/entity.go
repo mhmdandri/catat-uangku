@@ -4,6 +4,7 @@ import (
 	"catatan-keuangan/modules/accounts"
 	groupmembers "catatan-keuangan/modules/group_members"
 	"catatan-keuangan/modules/invitations"
+	userprofile "catatan-keuangan/modules/user_profile"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,4 +21,5 @@ type User struct {
 	Accounts      []accounts.Account         `gorm:"foreignKey:OwnerUserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"accounts,omitempty"`
 	GroupMembers  []groupmembers.GroupMember `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"group_members,omitempty"`
 	InviterUserID []invitations.Invitation   `gorm:"foreignKey:InviterUserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"invitations,omitempty"`
+	Profile       userprofile.UserProfile    `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"profile,omitempty"`
 }

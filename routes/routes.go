@@ -11,15 +11,19 @@ import (
 	"catatan-keuangan/modules/groups"
 	"catatan-keuangan/modules/invitations"
 	"catatan-keuangan/modules/transactions"
+	userprofile "catatan-keuangan/modules/user_profile"
 	"catatan-keuangan/modules/users"
 
 	"github.com/gin-gonic/gin"
 )
 
 func InitRoutes(r *gin.Engine) {
+	userProfileRepository := userprofile.NewRepository(database.DB)
+	userProfileService := userprofile.NewService(userProfileRepository)
 	userRepository := users.NewRepository(database.DB)
-	userService := users.NewService(userRepository)
+	userService := users.NewService(userRepository, userProfileService)
 	userHandler := handler.NewUserHandler(userService)
+	userProfileHandler := handler.NewUserProfileHandler(userProfileService)
 	accountRepository := accounts.NewRepository(database.DB)
 	accountService := accounts.NewService(accountRepository)
 	accountHandler := handler.NewAccountHandler(accountService)
@@ -38,7 +42,7 @@ func InitRoutes(r *gin.Engine) {
 	transactionService := transactions.NewService(transactionRepository, database.DB, attachmentService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
 	refreshRepository := auth.NewRefreshRepository(database.DB)
-	authService := auth.NewService(userRepository, refreshRepository)
+	authService := auth.NewService(userRepository, refreshRepository, userProfileService)
 	authHandler := handler.NewAuthHandler(authService)
 	v1 := r.Group("/api/v1")
 	{
@@ -51,6 +55,9 @@ func InitRoutes(r *gin.Engine) {
 
 		v1.Use(middleware.AuthMiddleware())
 		v1.GET("/auth/me", authHandler.Me)
+		v1.GET("/profile", userProfileHandler.GetProfile)
+		v1.PUT("/profile", userProfileHandler.UpdateProfile)
+		v1.POST("/profile/avatar", userProfileHandler.UploadAvatar)
 		v1.GET("/users", userHandler.GetAllUsers)
 		v1.POST("/users", userHandler.PostUserHandler)
 		v1.GET("/users/:id", userHandler.GetUserByID)

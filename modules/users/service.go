@@ -3,6 +3,7 @@ package users
 import (
 	"errors"
 
+	userprofile "catatan-keuangan/modules/user_profile"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,11 +17,12 @@ type Service interface {
 }
 
 type service struct {
-	repository Repository
+	repository     Repository
+	profileService userprofile.Service
 }
 
-func NewService(repository Repository) *service {
-	return &service{repository}
+func NewService(repository Repository, profileService userprofile.Service) *service {
+	return &service{repository: repository, profileService: profileService}
 }
 
 func (s *service) FindAll() ([]User, error) {
@@ -41,7 +43,18 @@ func (s *service) Create(userRequest UserRequest) (User, error) {
 		Email:    userRequest.Email,
 		Password: string(hashPassword),
 	}
-	return s.repository.Create(user)
+	newUser, err := s.repository.Create(user)
+	if err != nil {
+		return User{}, err
+	}
+	if s.profileService != nil {
+		profile, err := s.profileService.EnsureDefaultProfile(newUser.ID, newUser.Name, newUser.Email)
+		if err != nil {
+			return User{}, err
+		}
+		newUser.Profile = profile
+	}
+	return newUser, nil
 }
 
 func (s *service) Update(ID uuid.UUID, userRequest UserRequest) (User, error) {

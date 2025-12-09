@@ -11,6 +11,7 @@ import (
 	"catatan-keuangan/modules/invitations"
 	transactionlines "catatan-keuangan/modules/transaction_lines"
 	"catatan-keuangan/modules/transactions"
+	userprofile "catatan-keuangan/modules/user_profile"
 	"catatan-keuangan/modules/users"
 	"fmt"
 	"log"
@@ -51,6 +52,7 @@ func ConnectDB() {
 		&transactionlines.TransactionLine{},
 		&attachments.Attachment{},
 		&auth.RefreshToken{},
+		&userprofile.UserProfile{},
 	)
 	if err != nil {
 		log.Fatal("Gagal melakukan migrasi database", err)

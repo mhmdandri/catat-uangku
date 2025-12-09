@@ -2,6 +2,7 @@ package auth
 
 import (
 	"catatan-keuangan/config"
+	userprofile "catatan-keuangan/modules/user_profile"
 	"catatan-keuangan/modules/users"
 	"context"
 	"crypto/rand"
@@ -32,6 +33,7 @@ type Service interface {
 type service struct {
 	userRepository    users.Repository
 	refreshRepository RefreshRepository
+	profileService    userprofile.Service
 	googleConfig      *oauth2.Config
 }
 type googleUserInfo struct {
@@ -42,8 +44,8 @@ type googleUserInfo struct {
 	Picture       string `json:"picture"`
 }
 
-func NewService(userRepository users.Repository, refreshRepository RefreshRepository) *service {
-	return &service{userRepository: userRepository, refreshRepository: refreshRepository, googleConfig: &oauth2.Config{
+func NewService(userRepository users.Repository, refreshRepository RefreshRepository, profileService userprofile.Service) *service {
+	return &service{userRepository: userRepository, refreshRepository: refreshRepository, profileService: profileService, googleConfig: &oauth2.Config{
 		ClientID:     config.Cfg.GoogleClientID,
 		ClientSecret: config.Cfg.GoogleClientSecret,
 		RedirectURL:  config.Cfg.GoogleRedirectURL,
@@ -96,6 +98,9 @@ func (s *service) GoogleCallback(ctx context.Context, code string, remember bool
 		} else {
 			return "", "", users.User{}, err
 		}
+	}
+	if _, err := s.profileService.EnsureDefaultProfile(user.ID, user.Name, user.Email); err != nil {
+		return "", "", users.User{}, errors.New("gagal membuat profil user")
 	}
 
 	access, err := GenerateToken(TokenData{UserID: user.ID, Role: ""})
@@ -226,6 +231,11 @@ func (s *service) Register(registerRequest users.UserRequest) (users.User, error
 	newUser, err := s.userRepository.Create(user)
 	if err != nil {
 		return users.User{}, err
+	}
+	if profile, err := s.profileService.EnsureDefaultProfile(newUser.ID, newUser.Name, newUser.Email); err == nil {
+		newUser.Profile = profile
+	} else {
+		return users.User{}, errors.New("gagal membuat profil user")
 	}
 	return newUser, err
 }
