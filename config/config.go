@@ -19,6 +19,11 @@ type Config struct {
 	JWTSecret   string
 	JWTIssuer   string
 	JWTAudience string
+
+	GoogleClientID      string
+	GoogleClientSecret  string
+	GoogleRedirectURL   string
+	FrontendRedirectURL string
 }
 
 var Cfg *Config
@@ -40,5 +45,10 @@ func LoadConfig() {
 		JWTSecret:   os.Getenv("JWT_SECRET"),
 		JWTIssuer:   os.Getenv("JWT_ISSUER"),
 		JWTAudience: os.Getenv("JWT_AUDIENCE"),
+
+		GoogleClientID:      os.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret:  os.Getenv("GOOGLE_CLIENT_SECRET"),
+		GoogleRedirectURL:   os.Getenv("GOOGLE_REDIRECT_URL"),
+		FrontendRedirectURL: os.Getenv("FRONTEND_REDIRECT_URL"),
 	}
 }
