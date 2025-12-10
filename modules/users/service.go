@@ -14,6 +14,7 @@ type Service interface {
 	Create(userRequest UserRequest) (User, error)
 	Update(ID uuid.UUID, userRequest UserRequest) (User, error)
 	Delete(ID uuid.UUID) (User, error)
+	ChangePassword(userID uuid.UUID, req ChangePasswordRequest) error
 }
 
 type service struct {
@@ -78,4 +79,27 @@ func (s *service) Delete(ID uuid.UUID) (User, error) {
 		return User{}, err
 	}
 	return s.repository.Delete(user)
+}
+
+func (s *service) ChangePassword(userID uuid.UUID, req ChangePasswordRequest) error {
+	user, err := s.repository.FindByID(userID)
+	if err != nil {
+		return err
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
+		return errors.New("password lama salah")
+	}
+	if req.NewPassword != req.ConfirmPassword {
+		return errors.New("konfirmasi password tidak sama")
+	}
+	if req.NewPassword == req.OldPassword {
+		return errors.New("password baru tidak boleh sama dengan password lama")
+	}
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("gagal membuat password")
+	}
+	user.Password = string(hashPassword)
+	_, err = s.repository.Update(user)
+	return err
 }

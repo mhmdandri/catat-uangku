@@ -60,6 +60,7 @@ func InitRoutes(r *gin.Engine) {
 		v1.POST("/profile/avatar", userProfileHandler.UploadAvatar)
 		v1.GET("/users", userHandler.GetAllUsers)
 		v1.POST("/users", userHandler.PostUserHandler)
+		v1.PUT("/users/password", userHandler.ChangePassword)
 		v1.GET("/users/:id", userHandler.GetUserByID)
 		v1.PUT("/users/:id", userHandler.UpdateUserHandler)
 		v1.DELETE("/users/:id", userHandler.DeleteUserHandler)

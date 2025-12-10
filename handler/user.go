@@ -130,6 +130,27 @@ func (h *userHandler) UpdateUserHandler(c *gin.Context) {
 	})
 }
 
+func (h *userHandler) ChangePassword(c *gin.Context) {
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
+	var req users.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input tidak valid"})
+		return
+	}
+	if err := h.userService.ChangePassword(userID, req); err != nil {
+		status := http.StatusBadRequest
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			status = http.StatusNotFound
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "password berhasil diubah"})
+}
+
 func formatValidationError(err error) []string {
 	var errors []string
 
