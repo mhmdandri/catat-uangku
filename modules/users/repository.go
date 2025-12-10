@@ -1,6 +1,8 @@
 package users
 
 import (
+	"catatan-keuangan/modules/accounts"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -24,13 +26,13 @@ func NewRepository(db *gorm.DB) *repository {
 
 func (r *repository) FindAll() ([]User, error) {
 	var users []User
-	err := r.db.Preload("Accounts").Preload("GroupMembers").Preload("Profile").Find(&users).Error
+	err := r.db.Preload("Accounts", accounts.WithBalance).Preload("GroupMembers").Preload("Profile").Find(&users).Error
 	return users, err
 }
 
 func (r *repository) FindByID(ID uuid.UUID) (User, error) {
 	var user User
-	err := r.db.Preload("Accounts").Preload("GroupMembers").Preload("Profile").First(&user, "id = ?", ID).Error
+	err := r.db.Preload("Accounts", accounts.WithBalance).Preload("GroupMembers").Preload("Profile").First(&user, "id = ?", ID).Error
 	return user, err
 }
 

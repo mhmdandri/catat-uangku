@@ -120,7 +120,7 @@ func (h *accountHandler) GetAccountByUserIDHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak ditemukan"})
 		return
 	}
-	account, err := h.accountService.FindByUserID(id)
+	accountsData, err := h.accountService.FindByUserID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User tidak memiliki akun"})
@@ -131,8 +131,6 @@ func (h *accountHandler) GetAccountByUserIDHandler(c *gin.Context) {
 		})
 		return
 	}
-	accountResponse := accounts.FormatAccountResponse(account)
-	c.JSON(http.StatusOK, gin.H{
-		"data": accountResponse,
-	})
+	accountResponses := accounts.FormatAccountResponses(accountsData)
+	c.JSON(http.StatusOK, gin.H{"data": accountResponses})
 }

@@ -7,7 +7,7 @@ type Service interface {
 	FindByID(ID uuid.UUID) (Account, error)
 	Update(ID uuid.UUID, accountRequest AccountUpdateRequest) (Account, error)
 	Delete(ID uuid.UUID) (Account, error)
-	FindByUserID(userID uuid.UUID) (Account, error)
+	FindByUserID(userID uuid.UUID) ([]Account, error)
 }
 
 type service struct {
@@ -20,22 +20,23 @@ func NewService(repository Repository) *service {
 
 func (s *service) Create(accountRequest AccountRequest) (Account, error) {
 	account := Account{
-		OwnerUserID: accountRequest.OwnerUserID,
-		GroupID:     accountRequest.GroupID,
-		Name:        accountRequest.Name,
-		Type:        accountRequest.Type,
-		Currency:    accountRequest.Currency,
-		Scope:       accountRequest.Scope,
-		IsShared:    accountRequest.IsShared,
-		IsActive:    accountRequest.IsActive,
+		OwnerUserID:  accountRequest.OwnerUserID,
+		GroupID:      accountRequest.GroupID,
+		Name:         accountRequest.Name,
+		Type:         accountRequest.Type,
+		FirstBalance: accountRequest.FirstBalance,
+		Currency:     accountRequest.Currency,
+		Scope:        accountRequest.Scope,
+		IsShared:     accountRequest.IsShared,
+		IsActive:     accountRequest.IsActive,
 	}
 	newAccount, err := s.repository.Create(account)
 	return newAccount, err
 }
 
 func (s *service) FindByID(ID uuid.UUID) (Account, error) {
-	user, err := s.repository.FindByID(ID)
-	return user, err
+	acc, err := s.repository.FindByID(ID)
+	return acc, err
 }
 
 func (s *service) Update(ID uuid.UUID, accountRequest AccountUpdateRequest) (Account, error) {
@@ -58,10 +59,10 @@ func (s *service) Delete(ID uuid.UUID) (Account, error) {
 	return s.repository.Delete(account)
 }
 
-func (s *service) FindByUserID(userID uuid.UUID) (Account, error) {
+func (s *service) FindByUserID(userID uuid.UUID) ([]Account, error) {
 	userAccount, err := s.repository.FindByUserID(userID)
 	if err != nil {
-		return Account{}, err
+		return nil, err
 	}
 	return userAccount, err
 }

@@ -37,6 +37,7 @@ func ConnectDB() {
 	if err != nil {
 		log.Fatal("Gagal membuat koneksi ke database", err)
 	}
+	seedCategories(db)
 	DB = db
 	if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
 		log.Fatal("Gagal mengaktifkan ekstensi uuid-ossp", err)
