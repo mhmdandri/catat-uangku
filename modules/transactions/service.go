@@ -10,10 +10,13 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrTransactionsNotFound = errors.New("transactions not found")
+
 type Service interface {
 	Create(transactionReq TransactionRequest) (Transactions, error)
 	FindByID(ID uuid.UUID) (Transactions, error)
 	FindAll() ([]Transactions, error)
+	GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error)
 }
 type service struct {
 	repository        Repository
@@ -99,6 +102,17 @@ func (s *service) FindByID(ID uuid.UUID) (Transactions, error) {
 func (s *service) FindAll() ([]Transactions, error) {
 	transactions, err := s.repository.FindAll()
 	return transactions, err
+}
+
+func (s *service) GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error) {
+	transactions, err := s.repository.GetTransactionByAccountID(accountID)
+	if err != nil {
+		return nil, err
+	}
+	if len(transactions) == 0 {
+		return nil, ErrTransactionsNotFound
+	}
+	return transactions, nil
 }
 
 func (s *service) resolveGroupID(tx *gorm.DB, scope string, groupID *uuid.UUID) (*uuid.UUID, error) {

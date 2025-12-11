@@ -73,3 +73,26 @@ func (h *transactionHandler) GetTransactionByID(c *gin.Context) {
 		"data": transactions.FormatTransactionResponse(transactionData),
 	})
 }
+
+func (h *transactionHandler) GetTransactionsByAccountID(c *gin.Context) {
+	accountID, err := uuid.Parse(c.Param("account_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "account_id tidak valid"})
+		return
+	}
+	transactionsData, err := h.transactionService.GetTransactionByAccountID(accountID)
+	if err != nil {
+		if errors.Is(err, transactions.ErrTransactionsNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Transactions tidak ditemukan"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Gagal mengambil data transactions",
+		})
+		return
+	}
+	tResponse := transactions.FormatTransactionResponses(transactionsData)
+	c.JSON(http.StatusOK, gin.H{
+		"data": tResponse,
+	})
+}

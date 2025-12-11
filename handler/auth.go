@@ -154,6 +154,8 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 	}
 	access, newRefresh, expires, _, err := h.authService.Refresh(rt)
 	if err != nil {
+		// Hapus cookie lama supaya browser tidak terus-menerus mengirim token yang tidak valid
+		c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
@@ -196,6 +198,7 @@ func (h *authHandler) Logout(c *gin.Context) {
 		return
 	}
 	if err := h.authService.Logout(rt); err != nil {
+		c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token tidak valid"})
 		return
 	}

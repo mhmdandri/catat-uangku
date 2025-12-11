@@ -9,6 +9,7 @@ type Repository interface {
 	Create(transaction Transactions) (Transactions, error)
 	FindByID(ID uuid.UUID) (Transactions, error)
 	FindAll() ([]Transactions, error)
+	GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error)
 }
 
 type repository struct {
@@ -33,5 +34,17 @@ func (r *repository) FindByID(ID uuid.UUID) (Transactions, error) {
 func (r *repository) FindAll() ([]Transactions, error) {
 	var transactions []Transactions
 	err := r.db.Preload("TransactionLines").Preload("Attachments").Find(&transactions).Error
+	return transactions, err
+}
+
+func (r *repository) GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error) {
+	var transactions []Transactions
+	err := r.db.
+		Preload("TransactionLines").
+		Preload("Attachments").
+		Joins("JOIN transaction_lines tl ON tl.transaction_id = transactions.id").
+		Where("tl.account_id = ?", accountID).
+		Select("transactions.*").
+		Find(&transactions).Error
 	return transactions, err
 }

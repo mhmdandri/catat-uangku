@@ -83,5 +83,6 @@ func InitRoutes(r *gin.Engine) {
 		v1.POST("/transactions", transactionHandler.CreateTransaction)
 		v1.GET("/transactions", transactionHandler.GetAllTransactions)
 		v1.GET("/transactions/:id", transactionHandler.GetTransactionByID)
+		v1.GET("/transactions/account/:account_id", transactionHandler.GetTransactionsByAccountID)
 	}
 }
