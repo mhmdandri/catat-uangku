@@ -1,6 +1,10 @@
 package accounts
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 type Service interface {
 	Create(accountRequest AccountRequest) (Account, error)
@@ -18,13 +22,21 @@ func NewService(repository Repository) *service {
 	return &service{repository}
 }
 
+var ErrTransactionExists = errors.New("akun sudah ada transaksi tidak bisa di hapus")
+
 func (s *service) Create(accountRequest AccountRequest) (Account, error) {
+	firstBalance := 0.0
+	if accountRequest.FirstBalance != nil {
+		firstBalance = *accountRequest.FirstBalance
+	}
+
 	account := Account{
 		OwnerUserID:  accountRequest.OwnerUserID,
 		GroupID:      accountRequest.GroupID,
 		Name:         accountRequest.Name,
 		Type:         accountRequest.Type,
-		FirstBalance: accountRequest.FirstBalance,
+		Number:       accountRequest.Number,
+		FirstBalance: firstBalance,
 		Currency:     accountRequest.Currency,
 		Scope:        accountRequest.Scope,
 		IsShared:     accountRequest.IsShared,
@@ -46,6 +58,8 @@ func (s *service) Update(ID uuid.UUID, accountRequest AccountUpdateRequest) (Acc
 	}
 	account.Name = accountRequest.Name
 	account.Type = accountRequest.Type
+	account.Number = accountRequest.Number
+	account.Currency = accountRequest.Currency
 	account.IsShared = accountRequest.IsShared
 	account.IsActive = accountRequest.IsActive
 	return s.repository.Update(account)
@@ -53,6 +67,9 @@ func (s *service) Update(ID uuid.UUID, accountRequest AccountUpdateRequest) (Acc
 
 func (s *service) Delete(ID uuid.UUID) (Account, error) {
 	account, err := s.repository.FindByID(ID)
+	if len(account.TransactionLines) > 0 {
+		return Account{}, ErrTransactionExists
+	}
 	if err != nil {
 		return Account{}, err
 	}

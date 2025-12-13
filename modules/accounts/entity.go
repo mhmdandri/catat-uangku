@@ -13,6 +13,7 @@ type Account struct {
 	GroupID      *uuid.UUID `gorm:"type:uuid;index"`
 	Name         string     `gorm:"type:varchar(100);not null"`
 	Type         string     `gorm:"type:varchar(50);not null"`
+	Number       *string    `gorm:"type:varchar(50);uniqueIndex;default:null"`
 	FirstBalance float64    `gorm:"type:numeric(15,2);not null;default:0"`
 	Balance      float64    `gorm:"column:balance;->;-:migration" json:"balance"`
 	Currency     string     `gorm:"type:varchar(10);not null"`

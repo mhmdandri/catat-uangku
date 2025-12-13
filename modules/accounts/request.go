@@ -7,7 +7,8 @@ type AccountRequest struct {
 	GroupID      *uuid.UUID `json:"group_id"`
 	Name         string     `json:"name" binding:"required"`
 	Type         string     `json:"type" binding:"required"`
-	FirstBalance float64    `json:"first_balance" binding:"required"`
+	Number       *string    `json:"number"`
+	FirstBalance *float64   `json:"first_balance" binding:"required,gte=0"`
 	Currency     string     `json:"currency" binding:"required"`
 	Scope        string     `json:"scope" binding:"required"`
 	IsShared     bool       `json:"is_shared"`
@@ -15,9 +16,10 @@ type AccountRequest struct {
 }
 
 type AccountUpdateRequest struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Currency string `json:"currency"`
-	IsShared bool   `json:"is_shared"`
-	IsActive bool   `json:"is_active"`
+	Name     string  `json:"name"`
+	Type     string  `json:"type"`
+	Currency string  `json:"currency"`
+	Number   *string `json:"number"`
+	IsShared bool    `json:"is_shared"`
+	IsActive bool    `json:"is_active"`
 }

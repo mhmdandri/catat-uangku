@@ -31,6 +31,7 @@ func (r *repository) FindByID(ID uuid.UUID) (Account, error) {
 	err := r.db.Model(&Account{}).
 		Scopes(WithBalance).
 		Where("accounts.id = ?", ID).
+		Preload("TransactionLines").
 		First(&account).Error
 	return account, err
 }

@@ -88,7 +88,8 @@ func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
 	}
 	accountResponse := accounts.FormatAccountResponse(updatedAccount)
 	c.JSON(http.StatusOK, gin.H{
-		"data": accountResponse,
+		"message": "Berhasil memperbarui akun",
+		"data":    accountResponse,
 	})
 }
 
@@ -102,6 +103,10 @@ func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Akun tidak ditemukan"})
+			return
+		}
+		if errors.Is(err, accounts.ErrTransactionExists) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": accounts.ErrTransactionExists.Error()})
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
