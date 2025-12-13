@@ -84,5 +84,6 @@ func InitRoutes(r *gin.Engine) {
 		v1.GET("/transactions", transactionHandler.GetAllTransactions)
 		v1.GET("/transactions/:id", transactionHandler.GetTransactionByID)
 		v1.GET("/transactions/account/:account_id", transactionHandler.GetTransactionsByAccountID)
+		v1.GET("/transactions/user/:id", transactionHandler.GetTransactionByUserID)
 	}
 }

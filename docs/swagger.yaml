@@ -1,0 +1,1326 @@
+basePath: /api/v1
+definitions:
+  accounts.AccountRequest:
+    properties:
+      currency:
+        type: string
+      first_balance:
+        minimum: 0
+        type: number
+      group_id:
+        type: string
+      is_active:
+        type: boolean
+      is_shared:
+        type: boolean
+      name:
+        type: string
+      number:
+        type: string
+      owner_user_id:
+        type: string
+      scope:
+        type: string
+      type:
+        type: string
+    required:
+    - currency
+    - first_balance
+    - name
+    - owner_user_id
+    - scope
+    - type
+    type: object
+  accounts.AccountResponse:
+    properties:
+      balance:
+        type: number
+      currency:
+        type: string
+      first_balance:
+        type: number
+      group_id:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_shared:
+        type: boolean
+      name:
+        type: string
+      number:
+        type: string
+      owner_user_id:
+        type: string
+      scope:
+        type: string
+      transaction_lines:
+        items:
+          $ref: '#/definitions/transactionlines.TransactionLine'
+        type: array
+      type:
+        type: string
+    type: object
+  accounts.AccountUpdateRequest:
+    properties:
+      currency:
+        type: string
+      is_active:
+        type: boolean
+      is_shared:
+        type: boolean
+      name:
+        type: string
+      number:
+        type: string
+      type:
+        type: string
+    type: object
+  attachments.Attachment:
+    properties:
+      file_name:
+        type: string
+      file_path:
+        type: string
+      id:
+        type: string
+      transaction_id:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+  attachments.AttachmentResponse:
+    properties:
+      file_name:
+        type: string
+      file_url:
+        type: string
+      id:
+        type: string
+      transaction_id:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      remember_me:
+        type: boolean
+    required:
+    - email
+    - password
+    type: object
+  categories.CategoryRequest:
+    properties:
+      group_id:
+        type: string
+      name:
+        type: string
+      owner_user_id:
+        type: string
+      type:
+        enum:
+        - income
+        - expense
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  categories.CategoryResponse:
+    properties:
+      group_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      owner_user_id:
+        type: string
+      type:
+        type: string
+    type: object
+  groupmembers.GroupMemberResponse:
+    properties:
+      group_id:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      joined_at:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
+  groups.GroupRequest:
+    properties:
+      creator_user_id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - creator_user_id
+    - name
+    - type
+    type: object
+  groups.GroupResponse:
+    properties:
+      id:
+        type: string
+      members:
+        items:
+          $ref: '#/definitions/groupmembers.GroupMemberResponse'
+        type: array
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  handler.AccessTokenResponse:
+    properties:
+      access_token:
+        type: string
+    type: object
+  handler.AccountDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/accounts.AccountResponse'
+    type: object
+  handler.AccountUpdateResponse:
+    properties:
+      data:
+        $ref: '#/definitions/accounts.AccountResponse'
+      message:
+        type: string
+    type: object
+  handler.AccountsDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/accounts.AccountResponse'
+        type: array
+    type: object
+  handler.CategoryDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/categories.CategoryResponse'
+    type: object
+  handler.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handler.GroupDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/groups.GroupResponse'
+    type: object
+  handler.GroupsDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/groups.GroupResponse'
+        type: array
+    type: object
+  handler.InvitationDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/invitations.Invitation'
+    type: object
+  handler.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handler.ProfileDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/userprofile.UserProfileResponse'
+    type: object
+  handler.TransactionDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/transactions.Transactions'
+    type: object
+  handler.TransactionListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/transactions.TransactionResponse'
+        type: array
+    type: object
+  handler.TransactionResponseBody:
+    properties:
+      data:
+        $ref: '#/definitions/transactions.TransactionResponse'
+    type: object
+  handler.URLResponse:
+    properties:
+      url:
+        type: string
+    type: object
+  handler.UserDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/users.UserResponse'
+    type: object
+  handler.UsersDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/users.UserResponse'
+        type: array
+    type: object
+  invitations.AcceptInvitationRequest:
+    properties:
+      group_id:
+        type: string
+      invitee_email:
+        type: string
+      token:
+        type: string
+      user_id:
+        type: string
+    required:
+    - group_id
+    - invitee_email
+    - token
+    - user_id
+    type: object
+  invitations.Invitation:
+    properties:
+      created_at:
+        type: string
+      expired_at:
+        type: string
+      group_id:
+        type: string
+      id:
+        type: string
+      invitee_email:
+        type: string
+      inviter_user_id:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      token:
+        type: string
+    type: object
+  invitations.InvitationRequest:
+    properties:
+      group_id:
+        type: string
+      invitee_email:
+        type: string
+      inviter_user_id:
+        type: string
+      role:
+        description: "Token\t\t\t string `json:\"token\"`"
+        type: string
+    required:
+    - group_id
+    - invitee_email
+    - inviter_user_id
+    - role
+    type: object
+  transactionlines.TransactionLine:
+    properties:
+      account_id:
+        type: string
+      credit:
+        type: number
+      debit:
+        type: number
+      id:
+        type: string
+      note:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  transactions.TransactionResponse:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/attachments.AttachmentResponse'
+        type: array
+      category_id:
+        type: string
+      created_by_user_id:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      group_id:
+        type: string
+      id:
+        type: string
+      scope:
+        type: string
+      total_amount:
+        type: number
+      transaction_lines:
+        items:
+          $ref: '#/definitions/transactionlines.TransactionLine'
+        type: array
+      type:
+        type: string
+    type: object
+  transactions.Transactions:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/attachments.Attachment'
+        type: array
+      category_id:
+        type: string
+      created_at:
+        type: string
+      created_by_user_id:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      group_id:
+        type: string
+      id:
+        type: string
+      private_to_user_id:
+        type: string
+      scope:
+        type: string
+      total_amount:
+        type: number
+      transaction_lines:
+        items:
+          $ref: '#/definitions/transactionlines.TransactionLine'
+        type: array
+      type:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  userprofile.UpdateProfileRequest:
+    properties:
+      address:
+        type: string
+      age:
+        type: integer
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      birthdate:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+    type: object
+  userprofile.UserProfileResponse:
+    properties:
+      address:
+        type: string
+      age:
+        type: integer
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      birthdate:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      is_verified:
+        type: boolean
+      last_name:
+        type: string
+      phone:
+        type: string
+      user_id:
+        type: string
+    type: object
+  users.ChangePasswordRequest:
+    properties:
+      confirm_password:
+        minLength: 6
+        type: string
+      new_password:
+        minLength: 6
+        type: string
+      old_password:
+        type: string
+    required:
+    - confirm_password
+    - new_password
+    - old_password
+    type: object
+  users.UserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  users.UserResponse:
+    properties:
+      accounts:
+        items:
+          $ref: '#/definitions/accounts.AccountResponse'
+        type: array
+      created_at:
+        type: string
+      email:
+        type: string
+      group_members:
+        items:
+          $ref: '#/definitions/groupmembers.GroupMemberResponse'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      profile:
+        $ref: '#/definitions/userprofile.UserProfileResponse'
+    type: object
+info:
+  contact: {}
+  description: Swagger documentation untuk layanan CatatUangku. Import file JSON-nya
+    ke Postman untuk koleksi otomatis.
+  title: CatatUangku API
+  version: "1.0"
+paths:
+  /accounts:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data akun
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.AccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.AccountDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat akun keuangan
+      tags:
+      - Accounts
+  /accounts/{id}:
+    delete:
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus akun
+      tags:
+      - Accounts
+    get:
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AccountDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail akun
+      tags:
+      - Accounts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data akun
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.AccountUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AccountUpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Perbarui akun
+      tags:
+      - Accounts
+  /accounts/user/{id}:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AccountsDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar akun milik user
+      tags:
+      - Accounts
+  /auth/google/callback:
+    get:
+      description: Tukar code Google menjadi access token dan refresh token cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AccessTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Callback Google OAuth
+      tags:
+      - Auth
+  /auth/google/login:
+    get:
+      description: Mengembalikan URL Google OAuth dan menyimpan state/remember di
+        cookie.
+      parameters:
+      - description: Set true untuk sesi lebih lama
+        in: query
+        name: remember
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.URLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Dapatkan URL login Google
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AccessTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Logout dan hapus refresh token
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserDataResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Profil user dari token
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      description: Menggunakan cookie refresh_token untuk mendapatkan access token
+        baru.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AccessTokenResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Refresh access token
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data registrasi
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.UserDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Daftar user baru
+      tags:
+      - Auth
+  /category:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data kategori
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/categories.CategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.CategoryDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat kategori
+      tags:
+      - Categories
+  /groups:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data group
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/groups.GroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.GroupDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat group baru
+      tags:
+      - Groups
+  /groups/{id}:
+    get:
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GroupDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail group
+      tags:
+      - Groups
+  /groups/user/{id}:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GroupsDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Group yang dimiliki user
+      tags:
+      - Groups
+  /invitations:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data undangan
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/invitations.InvitationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.InvitationDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Kirim undangan group
+      tags:
+      - Invitations
+  /invitations/accept:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data penerimaan undangan
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/invitations.AcceptInvitationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.InvitationDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Terima undangan group
+      tags:
+      - Invitations
+  /profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ProfileDataResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil profil user
+      tags:
+      - Profile
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data profil
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userprofile.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ProfileDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Perbarui profil user
+      tags:
+      - Profile
+  /profile/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: File avatar
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ProfileDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload avatar
+      tags:
+      - Profile
+  /transactions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TransactionListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar transaksi
+      tags:
+      - Transactions
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Group ID (isi saat scope=group)
+        in: formData
+        name: group_id
+        type: string
+      - description: Category ID
+        in: formData
+        name: category_id
+        required: true
+        type: string
+      - description: User ID pembuat
+        in: formData
+        name: created_by_user_id
+        required: true
+        type: string
+      - description: Account ID
+        in: formData
+        name: account_id
+        required: true
+        type: string
+      - description: income atau expense
+        in: formData
+        name: type
+        required: true
+        type: string
+      - description: Nominal transaksi
+        in: formData
+        name: total_amount
+        required: true
+        type: number
+      - description: personal atau group
+        in: formData
+        name: scope
+        required: true
+        type: string
+      - description: Catatan
+        in: formData
+        name: description
+        type: string
+      - description: Lampiran transaksi (boleh multiple)
+        in: formData
+        name: attachments
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.TransactionDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat transaksi
+      tags:
+      - Transactions
+  /transactions/{id}:
+    get:
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TransactionResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail transaksi
+      tags:
+      - Transactions
+  /transactions/account/{account_id}:
+    get:
+      parameters:
+      - description: Account ID
+        in: path
+        name: account_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TransactionListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Transaksi berdasarkan akun
+      tags:
+      - Transactions
+  /transactions/user/{id}:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TransactionListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Transaksi berdasarkan user
+      tags:
+      - Transactions
+  /users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UsersDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar semua user
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.UserDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat user baru
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus user
+      tags:
+      - Users
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail user by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Perbarui user
+      tags:
+      - Users
+  /users/password:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ganti password user
+      tags:
+      - Users
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

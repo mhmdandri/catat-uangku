@@ -15,6 +15,16 @@ func NewInvitationHandler(invitationService invitations.Service) *invitationHand
 	return &invitationHandler{invitationService}
 }
 
+// SendInvitationGroupHandler godoc
+// @Summary Kirim undangan group
+// @Tags Invitations
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body invitations.InvitationRequest true "Data undangan"
+// @Success 201 {object} InvitationDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /invitations [post]
 func (h *invitationHandler) SendInvitationGroupHandler(c *gin.Context) {
 	var invitationRequest invitations.InvitationRequest
 	if err := c.ShouldBindJSON(&invitationRequest); err != nil {
@@ -35,6 +45,16 @@ func (h *invitationHandler) SendInvitationGroupHandler(c *gin.Context) {
 	})
 }
 
+// AcceptInvitationGroupHandler godoc
+// @Summary Terima undangan group
+// @Tags Invitations
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body invitations.AcceptInvitationRequest true "Data penerimaan undangan"
+// @Success 200 {object} InvitationDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /invitations/accept [post]
 func (h *invitationHandler) AcceptInvitationGroupHandler(c *gin.Context) {
 	var tokenRequest invitations.AcceptInvitationRequest
 	if err := c.ShouldBindJSON(&tokenRequest); err != nil {

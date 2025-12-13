@@ -112,7 +112,7 @@ func (s *service) GoogleCallback(ctx context.Context, code string, remember bool
 	if err != nil {
 		return "", "", users.User{}, errors.New("gagal membuat refresh token")
 	}
-	lifespan := 24 * time.Hour
+	lifespan := 4 * time.Hour
 	if remember {
 		lifespan = 7 * 24 * time.Hour
 	}
@@ -128,9 +128,9 @@ func generateRefresh() (string, string, error) {
 	if _, err := rand.Read(base); err != nil {
 		return "", "", err
 	}
-	raw := base64.StdEncoding.EncodeToString(base)
+	raw := base64.RawURLEncoding.EncodeToString(base)
 	sum := sha256.Sum256([]byte(raw))
-	return raw, base64.StdEncoding.EncodeToString(sum[:]), nil
+	return raw, base64.RawURLEncoding.EncodeToString(sum[:]), nil
 }
 
 func (s *service) Login(loginRequest LoginRequest) (string, string, users.User, error) {
@@ -149,7 +149,7 @@ func (s *service) Login(loginRequest LoginRequest) (string, string, users.User, 
 	if err != nil {
 		return "", "", users.User{}, errors.New("gagal membuat refresh token")
 	}
-	expires := time.Now().Add(24 * time.Hour)
+	expires := time.Now().Add(4 * time.Hour)
 	if loginRequest.RememberMe {
 		expires = time.Now().Add(7 * 24 * time.Hour)
 	}
@@ -161,7 +161,7 @@ func (s *service) Login(loginRequest LoginRequest) (string, string, users.User, 
 
 func hashRaw(raw string) string {
 	sum := sha256.Sum256([]byte(raw))
-	return base64.StdEncoding.EncodeToString(sum[:])
+	return base64.RawURLEncoding.EncodeToString(sum[:])
 }
 
 func (s *service) Refresh(raw string) (string, string, time.Time, users.User, error) {
@@ -193,7 +193,7 @@ func (s *service) Refresh(raw string) (string, string, time.Time, users.User, er
 	if remembered {
 		lifespan = 7 * 24 * time.Hour
 	} else {
-		lifespan = 24 * time.Hour
+		lifespan = 4 * time.Hour
 	}
 	expires := time.Now().Add(lifespan)
 	if _, err := s.refreshRepository.Create(RefreshToken{UserID: user.ID, Token: newHash, ExpiresAt: expires, RotatedFrom: &rt.ID}); err != nil {

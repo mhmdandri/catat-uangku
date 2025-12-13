@@ -22,6 +22,14 @@ func NewUserProfileHandler(profileService userprofile.Service) *userProfileHandl
 	return &userProfileHandler{profileService}
 }
 
+// GetProfile godoc
+// @Summary Ambil profil user
+// @Tags Profile
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} ProfileDataResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /profile [get]
 func (h *userProfileHandler) GetProfile(c *gin.Context) {
 	userID, ok := userIDFromContext(c)
 	if !ok {
@@ -41,6 +49,16 @@ func (h *userProfileHandler) GetProfile(c *gin.Context) {
 	})
 }
 
+// UpdateProfile godoc
+// @Summary Perbarui profil user
+// @Tags Profile
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body userprofile.UpdateProfileRequest true "Data profil"
+// @Success 200 {object} ProfileDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /profile [put]
 func (h *userProfileHandler) UpdateProfile(c *gin.Context) {
 	userID, ok := userIDFromContext(c)
 	if !ok {
@@ -65,6 +83,16 @@ func (h *userProfileHandler) UpdateProfile(c *gin.Context) {
 	})
 }
 
+// UploadAvatar godoc
+// @Summary Upload avatar
+// @Tags Profile
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param avatar formData file true "File avatar"
+// @Success 200 {object} ProfileDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /profile/avatar [post]
 func (h *userProfileHandler) UploadAvatar(c *gin.Context) {
 	userID, ok := userIDFromContext(c)
 	if !ok {

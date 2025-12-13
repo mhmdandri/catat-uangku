@@ -21,21 +21,55 @@ func NewAuthHandler(authService auth.Service) *authHandler {
 	return &authHandler{authService}
 }
 
+// GoogleLogin godoc
+// @Summary Dapatkan URL login Google
+// @Description Mengembalikan URL Google OAuth dan menyimpan state/remember di cookie.
+// @Tags Auth
+// @Produce json
+// @Param remember query bool false "Set true untuk sesi lebih lama"
+// @Success 200 {object} URLResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/google/login [get]
 func (h *authHandler) GoogleLogin(c *gin.Context) {
 	remember := c.Query("remember") == "true"
 	state := uuid.NewString()
-	// Simpan state di cookie agar bisa diverifikasi saat callback untuk mencegah CSRF.
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("oauth_state", state, int((10*time.Minute)/time.Second), "/", "", false, true)
-	c.SetCookie("oauth_remember", fmt.Sprintf("%t", remember), int((10*time.Minute)/time.Second), "/", "", false, true)
+	c.SetCookie(
+		"oauth_state",
+		state,
+		int((10*time.Minute)/time.Second),
+		"/",
+		"",
+		cookieSecure(),
+		true,
+	)
+	c.SetCookie(
+		"oauth_remember",
+		fmt.Sprintf("%t", remember),
+		int((10*time.Minute)/time.Second),
+		"/",
+		"",
+		cookieSecure(),
+		true,
+	)
 
 	url := h.authService.GoogleLoginURL(state)
 	c.JSON(http.StatusOK, gin.H{"url": url})
-	// atau c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
+// GoogleCallback godoc
+// @Summary Callback Google OAuth
+// @Description Tukar code Google menjadi access token dan refresh token cookie.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} AccessTokenResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/google/callback [get]
 func (h *authHandler) GoogleCallback(c *gin.Context) {
 	redirectWithError := func(msg string) {
+		c.SetCookie("oauth_state", "", -1, "/", "", cookieSecure(), true)
+		c.SetCookie("oauth_remember", "", -1, "/", "", cookieSecure(), true)
+
 		if config.Cfg.FrontendRedirectURL != "" {
 			if target, err := url.Parse(config.Cfg.FrontendRedirectURL); err == nil {
 				q := target.Query()
@@ -47,37 +81,38 @@ func (h *authHandler) GoogleCallback(c *gin.Context) {
 		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": msg})
 	}
+
 	rememberCookie, _ := c.Cookie("oauth_remember")
 	remember := rememberCookie == "true"
+
 	stateCookie, err := c.Cookie("oauth_state")
 	stateQuery := c.Query("state")
 	if err != nil || stateCookie == "" || stateCookie != stateQuery {
-		c.SetCookie("oauth_state", "", -1, "/", "", false, true)
 		redirectWithError("state tidak valid")
 		return
 	}
 
 	code := c.Query("code")
 	if code == "" {
-		c.SetCookie("oauth_state", "", -1, "/", "", false, true)
 		redirectWithError("code kosong")
 		return
 	}
+
 	access, refresh, _, err := h.authService.GoogleCallback(c.Request.Context(), code, remember)
 	if err != nil {
-		c.SetCookie("oauth_state", "", -1, "/", "", false, true)
 		redirectWithError(err.Error())
 		return
 	}
-	lifespan := 24 * time.Hour
+
+	lifespan := 4 * time.Hour
 	if remember {
 		lifespan = 7 * 24 * time.Hour
 	}
 	maxAge := int(lifespan / time.Second)
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("refresh_token", refresh, maxAge, "/", "", false, true)
-	c.SetCookie("oauth_state", "", -1, "/", "", false, true)
-	c.SetCookie("oauth_remember", "", -1, "/", "", false, true)
+	setAuthCookie(c, "refresh_token", refresh, maxAge)
+
+	c.SetCookie("oauth_state", "", -1, "/", "", cookieSecure(), true)
+	c.SetCookie("oauth_remember", "", -1, "/", "", cookieSecure(), true)
 
 	if config.Cfg.FrontendRedirectURL != "" {
 		if target, err := url.Parse(config.Cfg.FrontendRedirectURL); err == nil {
@@ -86,98 +121,114 @@ func (h *authHandler) GoogleCallback(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"access_token": access,
-	})
+	c.JSON(http.StatusOK, gin.H{"access_token": access})
 }
 
+// Register godoc
+// @Summary Daftar user baru
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body users.UserRequest true "Data registrasi"
+// @Success 201 {object} UserDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/register [post]
 func (h *authHandler) Register(c *gin.Context) {
 	var registerRequest users.UserRequest
 	if err := c.ShouldBindJSON(&registerRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "input tidak valid",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input tidak valid"})
 		return
 	}
+
 	user, err := h.authService.Register(registerRequest)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{
-		"data": users.FormatUserResponse(user),
-	})
+
+	c.JSON(http.StatusCreated, gin.H{"data": users.FormatUserResponse(user)})
 }
 
+// Login godoc
+// @Summary Login user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body auth.LoginRequest true "Data login"
+// @Success 200 {object} AccessTokenResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/login [post]
 func (h *authHandler) Login(c *gin.Context) {
 	var loginRequest auth.LoginRequest
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "input tidak valid",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input tidak valid"})
 		return
 	}
-	lifespan := 24 * time.Hour
+
+	lifespan := 4 * time.Hour
 	if loginRequest.RememberMe {
 		lifespan = 7 * 24 * time.Hour
 	}
+
 	access, refresh, _, err := h.authService.Login(loginRequest)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	maxAge := int(lifespan / time.Second)
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie(
-		"refresh_token",
-		refresh,
-		maxAge,
-		"/",
-		"",
-		false,
-		true,
-	)
-	c.JSON(http.StatusOK, gin.H{
-		"access_token": access,
-	})
+	setAuthCookie(c, "refresh_token", refresh, maxAge)
+
+	c.JSON(http.StatusOK, gin.H{"access_token": access})
 }
 
+// RefreshToken godoc
+// @Summary Refresh access token
+// @Description Menggunakan cookie refresh_token untuk mendapatkan access token baru.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} AccessTokenResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /auth/refresh [post]
 func (h *authHandler) RefreshToken(c *gin.Context) {
 	rt, err := c.Cookie("refresh_token")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token tidak ada"})
 		return
 	}
+
 	access, newRefresh, expires, _, err := h.authService.Refresh(rt)
 	if err != nil {
-		// Hapus cookie lama supaya browser tidak terus-menerus mengirim token yang tidak valid
-		c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+		setAuthCookie(c, "refresh_token", "", -1)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
+
 	lifespan := time.Until(expires)
 	if lifespan < 0 {
 		lifespan = 0
 	}
 	maxAge := int(lifespan / time.Second)
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("refresh_token", newRefresh, maxAge, "/", "", false, true)
+	setAuthCookie(c, "refresh_token", newRefresh, maxAge)
 
-	c.JSON(http.StatusOK, gin.H{
-		"access_token": access,
-	})
+	c.JSON(http.StatusOK, gin.H{"access_token": access})
 }
 
+// Me godoc
+// @Summary Profil user dari token
+// @Tags Auth
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} UserDataResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /auth/me [get]
 func (h *authHandler) Me(c *gin.Context) {
 	userIDVal, ok := c.Get("userID")
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "userID tidak ditemukan di token"})
 		return
 	}
+
 	userID, err := uuid.Parse(userIDVal.(string))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "userID tidak valid"})
@@ -189,21 +240,30 @@ func (h *authHandler) Me(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user tidak ditemukan"})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"data": users.FormatUserResponse(user)})
 }
+
+// Logout godoc
+// @Summary Logout dan hapus refresh token
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/logout [post]
 func (h *authHandler) Logout(c *gin.Context) {
 	rt, err := c.Cookie("refresh_token")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh token tidak ada"})
 		return
 	}
+
 	if err := h.authService.Logout(rt); err != nil {
-		c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+		setAuthCookie(c, "refresh_token", "", -1)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token tidak valid"})
 		return
 	}
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 
+	setAuthCookie(c, "refresh_token", "", -1)
 	c.JSON(http.StatusOK, gin.H{"message": "logout berhasil"})
 }

@@ -18,6 +18,16 @@ func NewAccountHandler(accountService accounts.Service) *accountHandler {
 	return &accountHandler{accountService}
 }
 
+// CreateAccountHandler godoc
+// @Summary Buat akun keuangan
+// @Tags Accounts
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body accounts.AccountRequest true "Data akun"
+// @Success 201 {object} AccountDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /accounts [post]
 func (h *accountHandler) CreateAccountHandler(c *gin.Context) {
 	var accountRequest accounts.AccountRequest
 	if err := c.ShouldBindJSON(&accountRequest); err != nil {
@@ -39,6 +49,15 @@ func (h *accountHandler) CreateAccountHandler(c *gin.Context) {
 	})
 }
 
+// GetAccountByIDHandler godoc
+// @Summary Detail akun
+// @Tags Accounts
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Account ID"
+// @Success 200 {object} AccountDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /accounts/{id} [get]
 func (h *accountHandler) GetAccountByIDHandler(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -62,6 +81,17 @@ func (h *accountHandler) GetAccountByIDHandler(c *gin.Context) {
 	})
 }
 
+// UpdateAccountHandler godoc
+// @Summary Perbarui akun
+// @Tags Accounts
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Account ID"
+// @Param request body accounts.AccountUpdateRequest true "Data akun"
+// @Success 200 {object} AccountUpdateResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /accounts/{id} [put]
 func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
 	var accountRequest accounts.AccountUpdateRequest
 	if err := c.ShouldBindJSON(&accountRequest); err != nil {
@@ -93,6 +123,15 @@ func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
 	})
 }
 
+// DeleteAccountHandler godoc
+// @Summary Hapus akun
+// @Tags Accounts
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Account ID"
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /accounts/{id} [delete]
 func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -119,6 +158,15 @@ func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
 	})
 }
 
+// GetAccountByUserIDHandler godoc
+// @Summary Daftar akun milik user
+// @Tags Accounts
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} AccountsDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /accounts/user/{id} [get]
 func (h *accountHandler) GetAccountByUserIDHandler(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

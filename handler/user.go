@@ -20,6 +20,14 @@ func NewUserHandler(userService users.Service) *userHandler {
 	return &userHandler{userService}
 }
 
+// GetAllUsers godoc
+// @Summary Daftar semua user
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} UsersDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /users [get]
 func (h *userHandler) GetAllUsers(c *gin.Context) {
 	userData, err := h.userService.FindAll()
 	if err != nil {
@@ -34,6 +42,15 @@ func (h *userHandler) GetAllUsers(c *gin.Context) {
 	})
 }
 
+// GetUserByID godoc
+// @Summary Detail user by ID
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} UserDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /users/{id} [get]
 func (h *userHandler) GetUserByID(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -57,6 +74,16 @@ func (h *userHandler) GetUserByID(c *gin.Context) {
 	})
 }
 
+// PostUserHandler godoc
+// @Summary Buat user baru
+// @Tags Users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body users.UserRequest true "Data user"
+// @Success 201 {object} UserDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /users [post]
 func (h *userHandler) PostUserHandler(c *gin.Context) {
 	var userRequest users.UserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
@@ -78,6 +105,15 @@ func (h *userHandler) PostUserHandler(c *gin.Context) {
 	})
 }
 
+// DeleteUserHandler godoc
+// @Summary Hapus user
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /users/{id} [delete]
 func (h *userHandler) DeleteUserHandler(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -100,6 +136,17 @@ func (h *userHandler) DeleteUserHandler(c *gin.Context) {
 	})
 }
 
+// UpdateUserHandler godoc
+// @Summary Perbarui user
+// @Tags Users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body users.UserRequest true "Data user"
+// @Success 200 {object} UserDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /users/{id} [put]
 func (h *userHandler) UpdateUserHandler(c *gin.Context) {
 	var userRequest users.UserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
@@ -130,6 +177,16 @@ func (h *userHandler) UpdateUserHandler(c *gin.Context) {
 	})
 }
 
+// ChangePassword godoc
+// @Summary Ganti password user
+// @Tags Users
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body users.ChangePasswordRequest true "Data password"
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /users/password [put]
 func (h *userHandler) ChangePassword(c *gin.Context) {
 	userID, ok := userIDFromContext(c)
 	if !ok {

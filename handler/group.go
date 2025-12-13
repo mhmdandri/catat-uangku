@@ -16,6 +16,16 @@ func NewGroupHandler(groupService groups.Service) *groupHandler {
 	return &groupHandler{groupService}
 }
 
+// CreateGroupHandler godoc
+// @Summary Buat group baru
+// @Tags Groups
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body groups.GroupRequest true "Data group"
+// @Success 201 {object} GroupDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /groups [post]
 func (h *groupHandler) CreateGroupHandler(c *gin.Context) {
 	var groupRequest groups.GroupRequest
 	if err := c.ShouldBindJSON(&groupRequest); err != nil {
@@ -37,6 +47,15 @@ func (h *groupHandler) CreateGroupHandler(c *gin.Context) {
 	})
 }
 
+// GetGroupByIDHandler godoc
+// @Summary Detail group
+// @Tags Groups
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Group ID"
+// @Success 200 {object} GroupDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /groups/{id} [get]
 func (h *groupHandler) GetGroupByIDHandler(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -58,6 +77,15 @@ func (h *groupHandler) GetGroupByIDHandler(c *gin.Context) {
 	})
 }
 
+// GetGroupByUserID godoc
+// @Summary Group yang dimiliki user
+// @Tags Groups
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} GroupsDataResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /groups/user/{id} [get]
 func (h *groupHandler) GetGroupByUserID(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

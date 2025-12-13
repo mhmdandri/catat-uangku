@@ -17,6 +17,7 @@ type Service interface {
 	FindByID(ID uuid.UUID) (Transactions, error)
 	FindAll() ([]Transactions, error)
 	GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error)
+	GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error)
 }
 type service struct {
 	repository        Repository
@@ -109,8 +110,13 @@ func (s *service) GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions
 	if err != nil {
 		return nil, err
 	}
-	if len(transactions) == 0 {
-		return nil, ErrTransactionsNotFound
+	return transactions, nil
+}
+
+func (s *service) GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error) {
+	transactions, err := s.repository.GetTransactionByUserID(userID)
+	if err != nil {
+		return nil, err
 	}
 	return transactions, nil
 }
