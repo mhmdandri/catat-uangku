@@ -45,7 +45,6 @@ type googleUserInfo struct {
 }
 
 func NewService(userRepository users.Repository, refreshRepository RefreshRepository, profileService userprofile.Service, db *gorm.DB) *service {
-	// db parameter kept for backward compatibility but not used
 	return &service{
 		userRepository:    userRepository,
 		refreshRepository: refreshRepository,
@@ -89,7 +88,7 @@ func (s *service) GoogleCallback(ctx context.Context, code string, remember bool
 	user, err := s.userRepository.FindByEmail(gu.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			hashed, hashErr := bcrypt.GenerateFromPassword([]byte(gu.ID), bcrypt.DefaultCost) // placeholder pwd
+			hashed, hashErr := bcrypt.GenerateFromPassword([]byte(gu.ID), bcrypt.DefaultCost)
 			if hashErr != nil {
 				return "", "", users.User{}, errors.New("gagal membuat akun baru")
 			}

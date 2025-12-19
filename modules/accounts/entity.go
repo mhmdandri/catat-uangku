@@ -21,6 +21,4 @@ type Account struct {
 	IsActive     bool       `gorm:"default:true"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
-
-	//TransactionLines []transactionlines.TransactionLine `gorm:"foreignKey:AccountID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"transaction_lines,omitempty"`
 }

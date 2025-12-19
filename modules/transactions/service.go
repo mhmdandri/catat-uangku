@@ -90,8 +90,6 @@ func (s *service) Create(TransactionRequest TransactionRequest) (Transactions, e
 		if err := tx.Create(&createTransactionLine).Error; err != nil {
 			return err
 		}
-		
-		// Reload transaction dengan relasi lengkap
 		if err := tx.
 			Preload("Category").
 			Preload("TransactionLines").
@@ -100,7 +98,7 @@ func (s *service) Create(TransactionRequest TransactionRequest) (Transactions, e
 			First(&createdTransaction, "id = ?", createdTransaction.ID).Error; err != nil {
 			return err
 		}
-		
+
 		newTransaction = createdTransaction
 		return nil
 	})

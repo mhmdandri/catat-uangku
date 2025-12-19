@@ -109,9 +109,7 @@ func (h *authHandler) GoogleCallback(c *gin.Context) {
 		lifespan = 7 * 24 * time.Hour
 	}
 	maxAge := int(lifespan / time.Second)
-
-	// Set both access and refresh cookies
-	setAuthCookie(c, "access_token", access, 15*60) // 15 menit
+	setAuthCookie(c, "access_token", access, 15*60)
 	setAuthCookie(c, "refresh_token", refresh, maxAge)
 	c.SetCookie("oauth_remember", "", -1, "/", "", cookieSecure(), true)
 
@@ -197,13 +195,10 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token tidak ada"})
 		return
 	}
-
-	// URL decode jika diperlukan (Gin auto-encodes cookies)
 	decoded, decodeErr := url.QueryUnescape(rt)
 	if decodeErr == nil {
 		rt = decoded
 	}
-
 	access, _, _, _, err := h.authService.Refresh(rt)
 	if err != nil {
 		setAuthCookie(c, "access_token", "", -1)
@@ -258,19 +253,15 @@ func (h *authHandler) Logout(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh token tidak ada"})
 		return
 	}
-
-	// URL decode jika diperlukan (Gin auto-encodes cookies)
 	decoded, decodeErr := url.QueryUnescape(rt)
 	if decodeErr == nil {
 		rt = decoded
 	}
-
 	if err := h.authService.Logout(rt); err != nil {
 		setAuthCookie(c, "refresh_token", "", -1)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token tidak valid"})
 		return
 	}
-
 	setAuthCookie(c, "refresh_token", "", -1)
 	c.JSON(http.StatusOK, gin.H{"message": "logout berhasil"})
 }

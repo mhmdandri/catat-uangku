@@ -17,7 +17,6 @@ type AccountResponse struct {
 	Scope        string     `json:"scope"`
 	IsShared     bool       `json:"is_shared"`
 	IsActive     bool       `json:"is_active"`
-	//TransactionLines []transactionlines.TransactionLine `json:"transaction_lines,omitempty"`
 }
 
 func FormatAccountResponse(account Account) AccountResponse {
@@ -34,7 +33,6 @@ func FormatAccountResponse(account Account) AccountResponse {
 		Scope:        account.Scope,
 		IsShared:     account.IsShared,
 		IsActive:     account.IsActive,
-		//TransactionLines: account.TransactionLines,
 	}
 }
 
