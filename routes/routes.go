@@ -42,7 +42,7 @@ func InitRoutes(r *gin.Engine) {
 	transactionService := transactions.NewService(transactionRepository, database.DB, attachmentService)
 	transactionHandler := handler.NewTransactionHandler(transactionService)
 	refreshRepository := auth.NewRefreshRepository(database.DB)
-	authService := auth.NewService(userRepository, refreshRepository, userProfileService)
+	authService := auth.NewService(userRepository, refreshRepository, userProfileService, database.DB)
 	authHandler := handler.NewAuthHandler(authService)
 	v1 := r.Group("/api/v1")
 	{
@@ -78,7 +78,8 @@ func InitRoutes(r *gin.Engine) {
 		v1.POST("/invitations", invitationHandler.SendInvitationGroupHandler)
 		v1.POST("/invitations/accept", invitationHandler.AcceptInvitationGroupHandler)
 
-		v1.POST("/category", categoryHandler.CreateCategoryHandler)
+		v1.POST("/categories", categoryHandler.CreateCategoryHandler)
+		v1.GET("/categories", categoryHandler.GetAllCategoriesHandler)
 
 		v1.POST("/transactions", transactionHandler.CreateTransaction)
 		v1.GET("/transactions", transactionHandler.GetAllTransactions)

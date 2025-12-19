@@ -9,6 +9,7 @@ import (
 
 type Service interface {
 	Create(categoryRequest CategoryRequest) (Category, error)
+	GetAllCategories() ([]Category, error)
 }
 
 type service struct {
@@ -50,6 +51,11 @@ func (s *service) Create(categoryRequest CategoryRequest) (Category, error) {
 	}
 	newCategory, err := s.repository.Create(category)
 	return newCategory, err
+}
+
+func (s *service) GetAllCategories() ([]Category, error) {
+	categories, err := s.repository.GetAllCategories()
+	return categories, err
 }
 
 func (s *service) ensureExists(table string, id uuid.UUID) error {

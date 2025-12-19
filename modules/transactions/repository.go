@@ -28,20 +28,32 @@ func (r *repository) Create(transaction Transactions) (Transactions, error) {
 
 func (r *repository) FindByID(ID uuid.UUID) (Transactions, error) {
 	var transaction Transactions
-	err := r.db.Preload("TransactionLines").Preload("Attachments").First(&transaction, "id = ?", ID).Error
+	err := r.db.
+		Preload("Category").
+		Preload("TransactionLines").
+		Preload("TransactionLines.Accounts").
+		Preload("Attachments").
+		First(&transaction, "id = ?", ID).Error
 	return transaction, err
 }
 
 func (r *repository) FindAll() ([]Transactions, error) {
 	var transactions []Transactions
-	err := r.db.Preload("TransactionLines").Preload("Attachments").Find(&transactions).Error
+	err := r.db.
+		Preload("Category").
+		Preload("TransactionLines").
+		Preload("TransactionLines.Accounts").
+		Preload("Attachments").
+		Find(&transactions).Error
 	return transactions, err
 }
 
 func (r *repository) GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error) {
 	var transactions []Transactions
 	err := r.db.
+		Preload("Category").
 		Preload("TransactionLines").
+		Preload("TransactionLines.Accounts").
 		Preload("Attachments").
 		Joins("JOIN transaction_lines tl ON tl.transaction_id = transactions.id").
 		Where("tl.account_id = ?", accountID).
@@ -53,9 +65,12 @@ func (r *repository) GetTransactionByAccountID(accountID uuid.UUID) ([]Transacti
 func (r *repository) GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error) {
 	var transactions []Transactions
 	err := r.db.
+		Preload("Category").
 		Preload("TransactionLines").
+		Preload("TransactionLines.Accounts").
 		Preload("Attachments").
 		Where("created_by_user_id = ?", userID).
+		Order("created_at DESC").
 		Find(&transactions).Error
 	return transactions, err
 }

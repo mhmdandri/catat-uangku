@@ -67,9 +67,6 @@ func (s *service) Update(ID uuid.UUID, accountRequest AccountUpdateRequest) (Acc
 
 func (s *service) Delete(ID uuid.UUID) (Account, error) {
 	account, err := s.repository.FindByID(ID)
-	if len(account.TransactionLines) > 0 {
-		return Account{}, ErrTransactionExists
-	}
 	if err != nil {
 		return Account{}, err
 	}

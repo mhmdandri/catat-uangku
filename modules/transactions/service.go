@@ -55,6 +55,7 @@ func (s *service) Create(TransactionRequest TransactionRequest) (Transactions, e
 			GroupID:         groupID,
 			CategoryID:      TransactionRequest.CategoryID,
 			CreatedByUserID: TransactionRequest.CreatedByUserID,
+			Title:           TransactionRequest.Title,
 			Date:            timeNow,
 			Type:            TransactionRequest.Type,
 			TotalAmount:     TransactionRequest.TotalAmount,
@@ -89,6 +90,17 @@ func (s *service) Create(TransactionRequest TransactionRequest) (Transactions, e
 		if err := tx.Create(&createTransactionLine).Error; err != nil {
 			return err
 		}
+		
+		// Reload transaction dengan relasi lengkap
+		if err := tx.
+			Preload("Category").
+			Preload("TransactionLines").
+			Preload("TransactionLines.Accounts").
+			Preload("Attachments").
+			First(&createdTransaction, "id = ?", createdTransaction.ID).Error; err != nil {
+			return err
+		}
+		
 		newTransaction = createdTransaction
 		return nil
 	})

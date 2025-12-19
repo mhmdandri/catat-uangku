@@ -4,9 +4,9 @@ import (
 	"catatan-keuangan/config"
 	"catatan-keuangan/modules/auth"
 	"catatan-keuangan/modules/users"
-	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +45,7 @@ func (h *authHandler) GoogleLogin(c *gin.Context) {
 	)
 	c.SetCookie(
 		"oauth_remember",
-		fmt.Sprintf("%t", remember),
+		strconv.FormatBool(remember),
 		int((10*time.Minute)/time.Second),
 		"/",
 		"",
@@ -109,9 +109,10 @@ func (h *authHandler) GoogleCallback(c *gin.Context) {
 		lifespan = 7 * 24 * time.Hour
 	}
 	maxAge := int(lifespan / time.Second)
-	setAuthCookie(c, "refresh_token", refresh, maxAge)
 
-	c.SetCookie("oauth_state", "", -1, "/", "", cookieSecure(), true)
+	// Set both access and refresh cookies
+	setAuthCookie(c, "access_token", access, 15*60) // 15 menit
+	setAuthCookie(c, "refresh_token", refresh, maxAge)
 	c.SetCookie("oauth_remember", "", -1, "/", "", cookieSecure(), true)
 
 	if config.Cfg.FrontendRedirectURL != "" {
@@ -197,19 +198,19 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	access, newRefresh, expires, _, err := h.authService.Refresh(rt)
+	// URL decode jika diperlukan (Gin auto-encodes cookies)
+	decoded, decodeErr := url.QueryUnescape(rt)
+	if decodeErr == nil {
+		rt = decoded
+	}
+
+	access, _, _, _, err := h.authService.Refresh(rt)
 	if err != nil {
+		setAuthCookie(c, "access_token", "", -1)
 		setAuthCookie(c, "refresh_token", "", -1)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-
-	lifespan := time.Until(expires)
-	if lifespan < 0 {
-		lifespan = 0
-	}
-	maxAge := int(lifespan / time.Second)
-	setAuthCookie(c, "refresh_token", newRefresh, maxAge)
 
 	c.JSON(http.StatusOK, gin.H{"access_token": access})
 }
@@ -256,6 +257,12 @@ func (h *authHandler) Logout(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh token tidak ada"})
 		return
+	}
+
+	// URL decode jika diperlukan (Gin auto-encodes cookies)
+	decoded, decodeErr := url.QueryUnescape(rt)
+	if decodeErr == nil {
+		rt = decoded
 	}
 
 	if err := h.authService.Logout(rt); err != nil {

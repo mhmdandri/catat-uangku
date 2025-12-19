@@ -45,3 +45,17 @@ func (h *categoryHandler) CreateCategoryHandler(c *gin.Context) {
 		"data": categoryResponse,
 	})
 }
+
+func (h *categoryHandler) GetAllCategoriesHandler(c *gin.Context) {
+	categoriesData, err := h.categoryService.GetAllCategories()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	categoryResponses := categories.FormatCategoryResponses(categoriesData)
+	c.JSON(http.StatusOK, gin.H{
+		"data": categoryResponses,
+	})
+}

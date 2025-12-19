@@ -1,6 +1,10 @@
 package transactionlines
 
-import "github.com/google/uuid"
+import (
+	"catatan-keuangan/modules/accounts"
+
+	"github.com/google/uuid"
+)
 
 type TransactionLine struct {
 	ID            uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
@@ -9,4 +13,6 @@ type TransactionLine struct {
 	Debit         float64   `gorm:"not null;default:0" json:"debit"`
 	Credit        float64   `gorm:"not null;default:0" json:"credit"`
 	Note          *string   `gorm:"type:text" json:"note,omitempty"`
+
+	Accounts accounts.Account `gorm:"foreignKey:AccountID" json:"account,omitempty"`
 }

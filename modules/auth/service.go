@@ -44,14 +44,20 @@ type googleUserInfo struct {
 	Picture       string `json:"picture"`
 }
 
-func NewService(userRepository users.Repository, refreshRepository RefreshRepository, profileService userprofile.Service) *service {
-	return &service{userRepository: userRepository, refreshRepository: refreshRepository, profileService: profileService, googleConfig: &oauth2.Config{
-		ClientID:     config.Cfg.GoogleClientID,
-		ClientSecret: config.Cfg.GoogleClientSecret,
-		RedirectURL:  config.Cfg.GoogleRedirectURL,
-		Scopes:       []string{"openid", "profile", "email"},
-		Endpoint:     google.Endpoint,
-	}}
+func NewService(userRepository users.Repository, refreshRepository RefreshRepository, profileService userprofile.Service, db *gorm.DB) *service {
+	// db parameter kept for backward compatibility but not used
+	return &service{
+		userRepository:    userRepository,
+		refreshRepository: refreshRepository,
+		profileService:    profileService,
+		googleConfig: &oauth2.Config{
+			ClientID:     config.Cfg.GoogleClientID,
+			ClientSecret: config.Cfg.GoogleClientSecret,
+			RedirectURL:  config.Cfg.GoogleRedirectURL,
+			Scopes:       []string{"openid", "profile", "email"},
+			Endpoint:     google.Endpoint,
+		},
+	}
 }
 func (s *service) GoogleLoginURL(state string) string {
 	if state == "" {
@@ -112,14 +118,18 @@ func (s *service) GoogleCallback(ctx context.Context, code string, remember bool
 	if err != nil {
 		return "", "", users.User{}, errors.New("gagal membuat refresh token")
 	}
+
 	lifespan := 4 * time.Hour
 	if remember {
 		lifespan = 7 * 24 * time.Hour
 	}
 	expires := time.Now().Add(lifespan)
-	if _, err := s.refreshRepository.Create(RefreshToken{UserID: user.ID, Token: hashRefresh, ExpiresAt: expires}); err != nil {
+
+	_, err = s.refreshRepository.Create(RefreshToken{UserID: user.ID, Token: hashRefresh, ExpiresAt: expires})
+	if err != nil {
 		return "", "", users.User{}, err
 	}
+
 	return access, rawRefresh, user, nil
 }
 
@@ -168,7 +178,7 @@ func (s *service) Refresh(raw string) (string, string, time.Time, users.User, er
 	hash := hashRaw(raw)
 	rt, err := s.refreshRepository.FindValidByHash(hash)
 	if err != nil {
-		return "", "", time.Time{}, users.User{}, errors.New("refresh token invalid")
+		return "", "", time.Time{}, users.User{}, err
 	}
 
 	user, err := s.userRepository.FindByID(rt.UserID)
@@ -176,30 +186,12 @@ func (s *service) Refresh(raw string) (string, string, time.Time, users.User, er
 		return "", "", time.Time{}, users.User{}, err
 	}
 
-	if err := s.refreshRepository.Revoke(rt.ID); err != nil {
-		return "", "", time.Time{}, users.User{}, err
-	}
-
 	access, err := GenerateToken(TokenData{UserID: user.ID, Role: ""})
 	if err != nil {
 		return "", "", time.Time{}, users.User{}, errors.New("gagal membuat access token")
 	}
-	newRaw, newHash, err := generateRefresh()
-	if err != nil {
-		return "", "", time.Time{}, users.User{}, errors.New("gagal membuat refresh token")
-	}
-	lifespan := rt.ExpiresAt.Sub(rt.CreatedAt)
-	remembered := lifespan > 48*time.Hour
-	if remembered {
-		lifespan = 7 * 24 * time.Hour
-	} else {
-		lifespan = 4 * time.Hour
-	}
-	expires := time.Now().Add(lifespan)
-	if _, err := s.refreshRepository.Create(RefreshToken{UserID: user.ID, Token: newHash, ExpiresAt: expires, RotatedFrom: &rt.ID}); err != nil {
-		return "", "", time.Time{}, users.User{}, err
-	}
-	return access, newRaw, expires, user, nil
+
+	return access, raw, rt.ExpiresAt, user, nil
 }
 
 func (s *service) Me(userID uuid.UUID) (users.User, error) {

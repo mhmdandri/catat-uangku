@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"catatan-keuangan/modules/attachments"
+	"catatan-keuangan/modules/categories"
 	transactionlines "catatan-keuangan/modules/transaction_lines"
 	"time"
 
@@ -13,6 +14,7 @@ type Transactions struct {
 	GroupID         *uuid.UUID `gorm:"type:uuid;index" json:"group_id"`
 	CategoryID      uuid.UUID  `gorm:"type:uuid;not null;index" json:"category_id"`
 	CreatedByUserID uuid.UUID  `gorm:"type:uuid;not null;index" json:"created_by_user_id"`
+	Title           string     `gorm:"type:varchar(255);not null" json:"title"`
 	Date            time.Time  `gorm:"not null" json:"date"`
 	Type            string     `gorm:"type:varchar(50);not null" json:"type"`
 	TotalAmount     float64    `gorm:"not null" json:"total_amount"`
@@ -22,6 +24,7 @@ type Transactions struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 
+	Category         categories.Category                `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 	TransactionLines []transactionlines.TransactionLine `gorm:"foreignKey:TransactionID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"transaction_lines,omitempty"`
 	Attachments      []attachments.Attachment           `gorm:"foreignKey:TransactionID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"attachments,omitempty"`
 }

@@ -1,7 +1,6 @@
 package accounts
 
 import (
-	transactionlines "catatan-keuangan/modules/transaction_lines"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,5 +22,5 @@ type Account struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 
-	TransactionLines []transactionlines.TransactionLine `gorm:"foreignKey:AccountID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"transaction_lines,omitempty"`
+	//TransactionLines []transactionlines.TransactionLine `gorm:"foreignKey:AccountID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"transaction_lines,omitempty"`
 }
