@@ -18,8 +18,8 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	Accounts      []accounts.Account         `gorm:"foreignKey:OwnerUserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"accounts,omitempty"`
-	GroupMembers  []groupmembers.GroupMember `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"group_members,omitempty"`
-	InviterUserID []invitations.Invitation   `gorm:"foreignKey:InviterUserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"invitations,omitempty"`
+	Accounts      []accounts.Account         `gorm:"foreignKey:OwnerUserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"accounts,omitempty"`
+	GroupMembers  []groupmembers.GroupMember `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"group_members,omitempty"`
+	InviterUserID []invitations.Invitation   `gorm:"foreignKey:InviterUserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"invitations,omitempty"`
 	Profile       userprofile.UserProfile    `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"profile,omitempty"`
 }

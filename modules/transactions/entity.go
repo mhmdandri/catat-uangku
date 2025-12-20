@@ -24,7 +24,7 @@ type Transactions struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 
-	Category         categories.Category                `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
-	TransactionLines []transactionlines.TransactionLine `gorm:"foreignKey:TransactionID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"transaction_lines,omitempty"`
-	Attachments      []attachments.Attachment           `gorm:"foreignKey:TransactionID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"attachments,omitempty"`
+	Category         categories.Category                `gorm:"foreignKey:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"category,omitempty"`
+	TransactionLines []transactionlines.TransactionLine `gorm:"foreignKey:TransactionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"transaction_lines,omitempty"`
+	Attachments      []attachments.Attachment           `gorm:"foreignKey:TransactionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"attachments,omitempty"`
 }

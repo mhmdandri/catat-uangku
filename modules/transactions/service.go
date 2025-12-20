@@ -16,6 +16,7 @@ type Service interface {
 	Create(transactionReq TransactionRequest) (Transactions, error)
 	FindByID(ID uuid.UUID) (Transactions, error)
 	FindAll() ([]Transactions, error)
+	Delete(ID uuid.UUID) error
 	GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error)
 	GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error)
 }
@@ -103,6 +104,11 @@ func (s *service) Create(TransactionRequest TransactionRequest) (Transactions, e
 		return nil
 	})
 	return newTransaction, err
+}
+
+func (s *service) Delete(ID uuid.UUID) error {
+	err := s.repository.Delete(ID)
+	return err
 }
 
 func (s *service) FindByID(ID uuid.UUID) (Transactions, error) {

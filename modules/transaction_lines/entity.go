@@ -14,5 +14,5 @@ type TransactionLine struct {
 	Credit        float64   `gorm:"not null;default:0" json:"credit"`
 	Note          *string   `gorm:"type:text" json:"note,omitempty"`
 
-	Accounts accounts.Account `gorm:"foreignKey:AccountID" json:"account,omitempty"`
+	Accounts accounts.Account `gorm:"foreignKey:AccountID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"account,omitempty"`
 }

@@ -172,3 +172,25 @@ func (h *transactionHandler) GetTransactionByUserID(c *gin.Context) {
 		"data": tResponse,
 	})
 }
+
+func (h *transactionHandler) DeleteTransaction(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
+		return
+	}
+	err = h.transactionService.Delete(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Transaction tidak ditemukan"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Gagal menghapus data transaction",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Transaction berhasil dihapus",
+	})
+}

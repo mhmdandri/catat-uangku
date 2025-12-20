@@ -9,6 +9,7 @@ type Repository interface {
 	Create(transaction Transactions) (Transactions, error)
 	FindByID(ID uuid.UUID) (Transactions, error)
 	FindAll() ([]Transactions, error)
+	Delete(ID uuid.UUID) error
 	GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error)
 	GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error)
 }
@@ -58,6 +59,7 @@ func (r *repository) GetTransactionByAccountID(accountID uuid.UUID) ([]Transacti
 		Joins("JOIN transaction_lines tl ON tl.transaction_id = transactions.id").
 		Where("tl.account_id = ?", accountID).
 		Select("transactions.*").
+		Order("created_at desc").
 		Find(&transactions).Error
 	return transactions, err
 }
@@ -73,4 +75,8 @@ func (r *repository) GetTransactionByUserID(userID uuid.UUID) ([]Transactions, e
 		Order("created_at DESC").
 		Find(&transactions).Error
 	return transactions, err
+}
+
+func (r *repository) Delete(ID uuid.UUID) error {
+	return r.db.Delete(&Transactions{}, "id = ?", ID).Error
 }
