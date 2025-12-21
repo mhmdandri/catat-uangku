@@ -2,6 +2,7 @@ package handler
 
 import (
 	"catatan-keuangan/modules/accounts"
+	"catatan-keuangan/modules/common"
 	"errors"
 	"net/http"
 
@@ -27,8 +28,13 @@ func NewAccountHandler(accountService accounts.Service) *accountHandler {
 // @Param request body accounts.AccountRequest true "Data akun"
 // @Success 201 {object} AccountDataResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /accounts [post]
 func (h *accountHandler) CreateAccountHandler(c *gin.Context) {
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	var accountRequest accounts.AccountRequest
 	if err := c.ShouldBindJSON(&accountRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -36,8 +42,12 @@ func (h *accountHandler) CreateAccountHandler(c *gin.Context) {
 		})
 		return
 	}
-	newAccount, err := h.accountService.Create(accountRequest)
+	newAccount, err := h.accountService.Create(userID, accountRequest)
 	if err != nil {
+		if errors.Is(err, common.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
 		})
@@ -57,17 +67,26 @@ func (h *accountHandler) CreateAccountHandler(c *gin.Context) {
 // @Param id path string true "Account ID"
 // @Success 200 {object} AccountDataResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /accounts/{id} [get]
 func (h *accountHandler) GetAccountByIDHandler(c *gin.Context) {
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
 	}
-	account, err := h.accountService.FindByID(id)
+	account, err := h.accountService.FindByID(userID, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Akun tidak ditemukan"})
+			return
+		}
+		if errors.Is(err, common.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -91,8 +110,13 @@ func (h *accountHandler) GetAccountByIDHandler(c *gin.Context) {
 // @Param request body accounts.AccountUpdateRequest true "Data akun"
 // @Success 200 {object} AccountUpdateResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /accounts/{id} [put]
 func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	var accountRequest accounts.AccountUpdateRequest
 	if err := c.ShouldBindJSON(&accountRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -105,10 +129,14 @@ func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
 	}
-	updatedAccount, err := h.accountService.Update(id, accountRequest)
+	updatedAccount, err := h.accountService.Update(userID, id, accountRequest)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Akun tidak ditemukan"})
+			return
+		}
+		if errors.Is(err, common.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -131,14 +159,19 @@ func (h *accountHandler) UpdateAccountHandler(c *gin.Context) {
 // @Param id path string true "Account ID"
 // @Success 200 {object} MessageResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /accounts/{id} [delete]
 func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
 		return
 	}
-	_, err = h.accountService.Delete(id)
+	_, err = h.accountService.Delete(userID, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Akun tidak ditemukan"})
@@ -146,6 +179,10 @@ func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
 		}
 		if errors.Is(err, accounts.ErrTransactionExists) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": accounts.ErrTransactionExists.Error()})
+			return
+		}
+		if errors.Is(err, common.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -166,14 +203,23 @@ func (h *accountHandler) DeleteAccountHandler(c *gin.Context) {
 // @Param id path string true "User ID"
 // @Success 200 {object} AccountsDataResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /accounts/user/{id} [get]
 func (h *accountHandler) GetAccountByUserIDHandler(c *gin.Context) {
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak ditemukan"})
 		return
 	}
-	accountsData, err := h.accountService.FindByUserID(id)
+	if id != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
+		return
+	}
+	accountsData, err := h.accountService.FindByUserID(userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User tidak memiliki akun"})

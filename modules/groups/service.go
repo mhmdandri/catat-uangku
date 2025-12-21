@@ -1,6 +1,7 @@
 package groups
 
 import (
+	"catatan-keuangan/modules/common"
 	groupmembers "catatan-keuangan/modules/group_members"
 	"time"
 
@@ -9,8 +10,8 @@ import (
 )
 
 type Service interface {
-	Create(groupRequest GroupRequest) (Group, error)
-	FindByID(ID uuid.UUID) (Group, error)
+	Create(userID uuid.UUID, groupRequest GroupRequest) (Group, error)
+	FindByID(userID, ID uuid.UUID) (Group, error)
 	FindGroupByUserID(userID uuid.UUID) ([]Group, error)
 }
 
@@ -26,7 +27,7 @@ func NewService(repository Repository, db *gorm.DB) *service {
 	}
 }
 
-func (s *service) Create(groupRequest GroupRequest) (Group, error) {
+func (s *service) Create(userID uuid.UUID, groupRequest GroupRequest) (Group, error) {
 	var newGroup Group
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		group := Group{
@@ -40,7 +41,7 @@ func (s *service) Create(groupRequest GroupRequest) (Group, error) {
 		}
 		creatorMember := groupmembers.GroupMember{
 			GroupID:  createdGroup.ID,
-			UserID:   groupRequest.CreatorUserID,
+			UserID:   userID,
 			Role:     "owner",
 			JoinedAt: time.Now(),
 			IsActive: true,
@@ -54,7 +55,10 @@ func (s *service) Create(groupRequest GroupRequest) (Group, error) {
 	return newGroup, err
 }
 
-func (s *service) FindByID(ID uuid.UUID) (Group, error) {
+func (s *service) FindByID(userID, ID uuid.UUID) (Group, error) {
+	if err := common.EnsureGroupMember(s.db, ID, userID); err != nil {
+		return Group{}, err
+	}
 	group, err := s.repository.FindByID(ID)
 	return group, err
 }

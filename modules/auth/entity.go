@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"catatan-keuangan/modules/users"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,4 +15,6 @@ type RefreshToken struct {
 	RevokedAt   *time.Time
 	RotatedFrom *uuid.UUID
 	CreatedAt   time.Time
+
+	User users.User `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }

@@ -25,13 +25,13 @@ func InitRoutes(r *gin.Engine) {
 	userHandler := handler.NewUserHandler(userService)
 	userProfileHandler := handler.NewUserProfileHandler(userProfileService)
 	accountRepository := accounts.NewRepository(database.DB)
-	accountService := accounts.NewService(accountRepository)
+	accountService := accounts.NewService(accountRepository, database.DB)
 	accountHandler := handler.NewAccountHandler(accountService)
 	groupRepository := groups.NewRepository(database.DB)
 	groupService := groups.NewService(groupRepository, database.DB)
 	groupHandler := handler.NewGroupHandler(groupService)
 	invitationRepository := invitations.NewRepository(database.DB)
-	invitationService := invitations.NewService(invitationRepository)
+	invitationService := invitations.NewService(invitationRepository, database.DB)
 	invitationHandler := handler.NewInvitationHandler(invitationService)
 	categoryRepository := categories.NewRepository(database.DB)
 	categoryService := categories.NewService(categoryRepository, database.DB)
@@ -87,5 +87,6 @@ func InitRoutes(r *gin.Engine) {
 		v1.GET("/transactions/account/:account_id", transactionHandler.GetTransactionsByAccountID)
 		v1.GET("/transactions/user/:id", transactionHandler.GetTransactionByUserID)
 		v1.DELETE("/transactions/:id", transactionHandler.DeleteTransaction)
+		v1.PUT("/transactions/:id", transactionHandler.UpdateTransaction)
 	}
 }

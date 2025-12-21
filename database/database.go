@@ -37,18 +37,17 @@ func ConnectDB() {
 	if err != nil {
 		log.Fatal("Gagal membuat koneksi ke database", err)
 	}
-	seedCategories(db)
 	DB = db
 	if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
 		log.Fatal("Gagal mengaktifkan ekstensi uuid-ossp", err)
 	}
 	err = db.AutoMigrate(
 		&users.User{},
-		&accounts.Account{},
 		&groups.Group{},
+		&categories.Category{},
+		&accounts.Account{},
 		&groupmembers.GroupMember{},
 		&invitations.Invitation{},
-		&categories.Category{},
 		&transactions.Transactions{},
 		&transactionlines.TransactionLine{},
 		&attachments.Attachment{},
@@ -58,4 +57,5 @@ func ConnectDB() {
 	if err != nil {
 		log.Fatal("Gagal melakukan migrasi database", err)
 	}
+	seedCategories(db)
 }

@@ -8,8 +8,9 @@ import (
 type Repository interface {
 	Create(transaction Transactions) (Transactions, error)
 	FindByID(ID uuid.UUID) (Transactions, error)
-	FindAll() ([]Transactions, error)
+	FindAllByUserID(userID uuid.UUID) ([]Transactions, error)
 	Delete(ID uuid.UUID) error
+	Update(ID uuid.UUID, transaction Transactions) (Transactions, error)
 	GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error)
 	GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error)
 }
@@ -38,15 +39,27 @@ func (r *repository) FindByID(ID uuid.UUID) (Transactions, error) {
 	return transaction, err
 }
 
-func (r *repository) FindAll() ([]Transactions, error) {
+func (r *repository) FindAllByUserID(userID uuid.UUID) ([]Transactions, error) {
 	var transactions []Transactions
 	err := r.db.
 		Preload("Category").
 		Preload("TransactionLines").
 		Preload("TransactionLines.Accounts").
 		Preload("Attachments").
+		Joins("LEFT JOIN group_members gm ON gm.group_id = transactions.group_id AND gm.user_id = ? AND gm.is_active = true", userID).
+		Where("transactions.scope = ? AND transactions.created_by_user_id = ?", "personal", userID).
+		Or("transactions.scope = ? AND gm.user_id IS NOT NULL", "group").
+		Order("transactions.created_at DESC").
 		Find(&transactions).Error
 	return transactions, err
+}
+
+func (r *repository) Update(ID uuid.UUID, transaction Transactions) (Transactions, error) {
+	err := r.db.Model(&Transactions{}).
+		Where("id = ?", ID).
+		Select("group_id", "category_id", "title", "type", "total_amount", "scope", "description").
+		Updates(&transaction).Error
+	return transaction, err
 }
 
 func (r *repository) GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error) {

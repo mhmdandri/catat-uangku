@@ -49,7 +49,9 @@ func (r *repository) FindByUserID(userID uuid.UUID) ([]Account, error) {
 	var accounts []Account
 	err := r.db.Model(&Account{}).
 		Scopes(WithBalance).
+		Joins("LEFT JOIN group_members gm ON gm.group_id = accounts.group_id AND gm.user_id = ? AND gm.is_active = true", userID).
 		Where("accounts.owner_user_id = ?", userID).
+		Or("gm.user_id IS NOT NULL AND accounts.scope = ? AND accounts.is_shared = ?", "group", true).
 		Order("accounts.created_at ASC").
 		Find(&accounts).Error
 	return accounts, err

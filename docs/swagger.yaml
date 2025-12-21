@@ -1,5 +1,36 @@
 basePath: /api/v1
 definitions:
+  accounts.Account:
+    properties:
+      balance:
+        type: number
+      createdAt:
+        type: string
+      currency:
+        type: string
+      firstBalance:
+        type: number
+      groupID:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      isShared:
+        type: boolean
+      name:
+        type: string
+      number:
+        type: string
+      ownerUserID:
+        type: string
+      scope:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   accounts.AccountRequest:
     properties:
       currency:
@@ -17,8 +48,6 @@ definitions:
         type: string
       number:
         type: string
-      owner_user_id:
-        type: string
       scope:
         type: string
       type:
@@ -27,7 +56,6 @@ definitions:
     - currency
     - first_balance
     - name
-    - owner_user_id
     - scope
     - type
     type: object
@@ -55,10 +83,6 @@ definitions:
         type: string
       scope:
         type: string
-      transaction_lines:
-        items:
-          $ref: '#/definitions/transactionlines.TransactionLine'
-        type: array
       type:
         type: string
     type: object
@@ -115,9 +139,47 @@ definitions:
     - email
     - password
     type: object
+  categories.Category:
+    properties:
+      color:
+        type: string
+      created_at:
+        type: string
+      group_id:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      owner_user_id:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  categories.CategoryMini:
+    properties:
+      color:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    type: object
   categories.CategoryRequest:
     properties:
+      color:
+        type: string
       group_id:
+        type: string
+      icon:
         type: string
       name:
         type: string
@@ -129,12 +191,17 @@ definitions:
         - expense
         type: string
     required:
+    - icon
     - name
     - type
     type: object
   categories.CategoryResponse:
     properties:
+      color:
+        type: string
       group_id:
+        type: string
+      icon:
         type: string
       id:
         type: string
@@ -162,14 +229,11 @@ definitions:
     type: object
   groups.GroupRequest:
     properties:
-      creator_user_id:
-        type: string
       name:
         type: string
       type:
         type: string
     required:
-    - creator_user_id
     - name
     - type
     type: object
@@ -208,6 +272,13 @@ definitions:
       data:
         items:
           $ref: '#/definitions/accounts.AccountResponse'
+        type: array
+    type: object
+  handler.CategoriesDataResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/categories.CategoryResponse'
         type: array
     type: object
   handler.CategoryDataResponse:
@@ -289,13 +360,9 @@ definitions:
         type: string
       token:
         type: string
-      user_id:
-        type: string
     required:
     - group_id
-    - invitee_email
     - token
-    - user_id
     type: object
   invitations.Invitation:
     properties:
@@ -324,20 +391,35 @@ definitions:
         type: string
       invitee_email:
         type: string
-      inviter_user_id:
-        type: string
       role:
-        description: "Token\t\t\t string `json:\"token\"`"
         type: string
     required:
     - group_id
     - invitee_email
-    - inviter_user_id
     - role
     type: object
   transactionlines.TransactionLine:
     properties:
+      account:
+        $ref: '#/definitions/accounts.Account'
       account_id:
+        type: string
+      credit:
+        type: number
+      debit:
+        type: number
+      id:
+        type: string
+      note:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  transactionlines.TransactionLineResponse:
+    properties:
+      account_id:
+        type: string
+      account_name:
         type: string
       credit:
         type: number
@@ -356,6 +438,8 @@ definitions:
         items:
           $ref: '#/definitions/attachments.AttachmentResponse'
         type: array
+      category:
+        $ref: '#/definitions/categories.CategoryMini'
       category_id:
         type: string
       created_by_user_id:
@@ -370,11 +454,13 @@ definitions:
         type: string
       scope:
         type: string
+      title:
+        type: string
       total_amount:
         type: number
       transaction_lines:
         items:
-          $ref: '#/definitions/transactionlines.TransactionLine'
+          $ref: '#/definitions/transactionlines.TransactionLineResponse'
         type: array
       type:
         type: string
@@ -385,6 +471,8 @@ definitions:
         items:
           $ref: '#/definitions/attachments.Attachment'
         type: array
+      category:
+        $ref: '#/definitions/categories.Category'
       category_id:
         type: string
       created_at:
@@ -402,6 +490,8 @@ definitions:
       private_to_user_id:
         type: string
       scope:
+        type: string
+      title:
         type: string
       total_amount:
         type: number
@@ -539,6 +629,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Buat akun keuangan
@@ -563,6 +657,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Hapus akun
@@ -584,6 +682,10 @@ paths:
             $ref: '#/definitions/handler.AccountDataResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -617,6 +719,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Perbarui akun
@@ -639,6 +745,10 @@ paths:
             $ref: '#/definitions/handler.AccountsDataResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -788,6 +898,28 @@ paths:
       summary: Daftar user baru
       tags:
       - Auth
+  /categories:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.CategoriesDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar kategori
+      tags:
+      - Categories
   /category:
     post:
       consumes:
@@ -808,6 +940,10 @@ paths:
             $ref: '#/definitions/handler.CategoryDataResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -837,6 +973,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Buat group baru
@@ -861,6 +1001,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Detail group
@@ -883,6 +1027,10 @@ paths:
             $ref: '#/definitions/handler.GroupsDataResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -912,6 +1060,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Kirim undangan group
@@ -937,6 +1089,10 @@ paths:
             $ref: '#/definitions/handler.InvitationDataResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -1027,6 +1183,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Daftar transaksi
@@ -1043,11 +1203,6 @@ paths:
       - description: Category ID
         in: formData
         name: category_id
-        required: true
-        type: string
-      - description: User ID pembuat
-        in: formData
-        name: created_by_user_id
         required: true
         type: string
       - description: Account ID
@@ -1089,6 +1244,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Buat transaksi
@@ -1113,9 +1272,83 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Detail transaksi
+      tags:
+      - Transactions
+    put:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Group ID (isi saat scope=group)
+        in: formData
+        name: group_id
+        type: string
+      - description: Category ID
+        in: formData
+        name: category_id
+        required: true
+        type: string
+      - description: Account ID
+        in: formData
+        name: account_id
+        required: true
+        type: string
+      - description: income atau expense
+        in: formData
+        name: type
+        required: true
+        type: string
+      - description: Nominal transaksi
+        in: formData
+        name: total_amount
+        required: true
+        type: number
+      - description: personal atau group
+        in: formData
+        name: scope
+        required: true
+        type: string
+      - description: Catatan
+        in: formData
+        name: description
+        type: string
+      - description: Lampiran transaksi (boleh multiple)
+        in: formData
+        name: attachments
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TransactionDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Perbarui transaksi
       tags:
       - Transactions
   /transactions/account/{account_id}:
@@ -1135,6 +1368,10 @@ paths:
             $ref: '#/definitions/handler.TransactionListResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -1159,6 +1396,10 @@ paths:
             $ref: '#/definitions/handler.TransactionListResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -1205,6 +1446,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Buat user baru
@@ -1229,6 +1474,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Hapus user
@@ -1250,6 +1499,10 @@ paths:
             $ref: '#/definitions/handler.UserDataResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:
@@ -1281,6 +1534,10 @@ paths:
             $ref: '#/definitions/handler.UserDataResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/handler.ErrorResponse'
       security:

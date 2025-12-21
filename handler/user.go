@@ -29,14 +29,18 @@ func NewUserHandler(userService users.Service) *userHandler {
 // @Failure 400 {object} ErrorResponse
 // @Router /users [get]
 func (h *userHandler) GetAllUsers(c *gin.Context) {
-	userData, err := h.userService.FindAll()
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
+	userData, err := h.userService.FindByID(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
 		})
 		return
 	}
-	usersResponse := users.FormatUserResponses(userData)
+	usersResponse := []users.UserResponse{users.FormatUserResponse(userData)}
 	c.JSON(http.StatusOK, gin.H{
 		"data": usersResponse,
 	})
@@ -50,11 +54,20 @@ func (h *userHandler) GetAllUsers(c *gin.Context) {
 // @Param id path string true "User ID"
 // @Success 200 {object} UserDataResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /users/{id} [get]
 func (h *userHandler) GetUserByID(c *gin.Context) {
+	requesterID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
+		return
+	}
+	if id != requesterID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
 		return
 	}
 	userData, err := h.userService.FindByID(id)
@@ -83,25 +96,11 @@ func (h *userHandler) GetUserByID(c *gin.Context) {
 // @Param request body users.UserRequest true "Data user"
 // @Success 201 {object} UserDataResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /users [post]
 func (h *userHandler) PostUserHandler(c *gin.Context) {
-	var userRequest users.UserRequest
-	if err := c.ShouldBindJSON(&userRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"errors": formatValidationError(err),
-		})
-		return
-	}
-	newUser, err := h.userService.Create(userRequest)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
-		return
-	}
-	userResponse := users.FormatUserResponse(newUser)
-	c.JSON(http.StatusCreated, gin.H{
-		"data": userResponse,
+	c.JSON(http.StatusForbidden, gin.H{
+		"error": "akses tidak diizinkan",
 	})
 }
 
@@ -113,11 +112,20 @@ func (h *userHandler) PostUserHandler(c *gin.Context) {
 // @Param id path string true "User ID"
 // @Success 200 {object} MessageResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /users/{id} [delete]
 func (h *userHandler) DeleteUserHandler(c *gin.Context) {
+	requesterID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
+		return
+	}
+	if id != requesterID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
 		return
 	}
 	_, err = h.userService.Delete(id)
@@ -146,8 +154,13 @@ func (h *userHandler) DeleteUserHandler(c *gin.Context) {
 // @Param request body users.UserRequest true "Data user"
 // @Success 200 {object} UserDataResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Router /users/{id} [put]
 func (h *userHandler) UpdateUserHandler(c *gin.Context) {
+	requesterID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
 	var userRequest users.UserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -158,6 +171,10 @@ func (h *userHandler) UpdateUserHandler(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id tidak valid"})
+		return
+	}
+	if id != requesterID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
 		return
 	}
 	updatedUser, err := h.userService.Update(id, userRequest)

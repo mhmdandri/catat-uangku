@@ -3,7 +3,7 @@ package accounts
 import "github.com/google/uuid"
 
 type AccountRequest struct {
-	OwnerUserID  uuid.UUID  `json:"owner_user_id" binding:"required"`
+	OwnerUserID  uuid.UUID  `json:"owner_user_id" swaggerignore:"true"`
 	GroupID      *uuid.UUID `json:"group_id"`
 	Name         string     `json:"name" binding:"required"`
 	Type         string     `json:"type" binding:"required"`

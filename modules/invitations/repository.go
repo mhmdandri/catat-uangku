@@ -49,7 +49,7 @@ func (r *repository) FindByToken(token string) (Invitation, error) {
 func (r *repository) IsUserAlreadyMember(groupID, userID uuid.UUID) (bool, error) {
 	var count int64
 	err := r.db.Model(&groupmembers.GroupMember{}).
-		Where("group_id = ? AND user_id = ?", groupID, userID).
+		Where("group_id = ? AND user_id = ? AND is_active = true", groupID, userID).
 		Count(&count).Error
 	return count > 0, err
 }

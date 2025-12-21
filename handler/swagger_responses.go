@@ -71,6 +71,10 @@ type CategoryDataResponse struct {
 	Data categories.CategoryResponse `json:"data"`
 }
 
+type CategoriesDataResponse struct {
+	Data []categories.CategoryResponse `json:"data"`
+}
+
 type TransactionDataResponse struct {
 	Data transactions.Transactions `json:"data"`
 }
