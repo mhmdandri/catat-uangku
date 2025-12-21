@@ -18,11 +18,11 @@ var ErrTransactionsNotFound = errors.New("transactions not found")
 type Service interface {
 	Create(userID uuid.UUID, transactionReq TransactionRequest) (Transactions, error)
 	FindByID(userID, ID uuid.UUID) (Transactions, error)
-	FindAll(userID uuid.UUID) ([]Transactions, error)
+	FindAll(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 	Delete(userID, ID uuid.UUID) error
 	Update(userID, ID uuid.UUID, transactionReq TransactionRequest) (Transactions, error)
-	GetTransactionByAccountID(userID, accountID uuid.UUID) ([]Transactions, error)
-	GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error)
+	GetTransactionByAccountID(userID, accountID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
+	GetTransactionByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 }
 type service struct {
 	repository        Repository
@@ -245,24 +245,24 @@ func (s *service) FindByID(userID, ID uuid.UUID) (Transactions, error) {
 	return transaction, err
 }
 
-func (s *service) FindAll(userID uuid.UUID) ([]Transactions, error) {
-	transactions, err := s.repository.FindAllByUserID(userID)
+func (s *service) FindAll(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
+	transactions, err := s.repository.FindAllByUserID(userID, startDate, endDate)
 	return transactions, err
 }
 
-func (s *service) GetTransactionByAccountID(userID, accountID uuid.UUID) ([]Transactions, error) {
+func (s *service) GetTransactionByAccountID(userID, accountID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
 	if _, err := s.getAccountForUser(s.db, accountID, userID); err != nil {
 		return nil, err
 	}
-	transactions, err := s.repository.GetTransactionByAccountID(accountID)
+	transactions, err := s.repository.GetTransactionByAccountID(accountID, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
 	return transactions, nil
 }
 
-func (s *service) GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error) {
-	transactions, err := s.repository.GetTransactionByUserID(userID)
+func (s *service) GetTransactionByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
+	transactions, err := s.repository.GetTransactionByUserID(userID, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}

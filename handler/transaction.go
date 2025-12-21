@@ -5,6 +5,7 @@ import (
 	"catatan-keuangan/modules/transactions"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -75,11 +76,16 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 // @Failure 403 {object} ErrorResponse
 // @Router /transactions [get]
 func (h *transactionHandler) GetAllTransactions(c *gin.Context) {
+	startDate, endDate, err := parseDateRange(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	userID, ok := userIDFromContext(c)
 	if !ok {
 		return
 	}
-	transactionList, err := h.transactionService.FindAll(userID)
+	transactionList, err := h.transactionService.FindAll(userID, startDate, endDate)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
@@ -143,6 +149,11 @@ func (h *transactionHandler) GetTransactionByID(c *gin.Context) {
 // @Failure 403 {object} ErrorResponse
 // @Router /transactions/account/{account_id} [get]
 func (h *transactionHandler) GetTransactionsByAccountID(c *gin.Context) {
+	startDate, endDate, err := parseDateRange(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	userID, ok := userIDFromContext(c)
 	if !ok {
 		return
@@ -152,7 +163,7 @@ func (h *transactionHandler) GetTransactionsByAccountID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "account_id tidak valid"})
 		return
 	}
-	transactionsData, err := h.transactionService.GetTransactionByAccountID(userID, accountID)
+	transactionsData, err := h.transactionService.GetTransactionByAccountID(userID, accountID, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, common.ErrForbidden) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
@@ -185,6 +196,11 @@ func (h *transactionHandler) GetTransactionsByAccountID(c *gin.Context) {
 // @Router /transactions/user/{id} [get]
 func (h *transactionHandler) GetTransactionByUserID(c *gin.Context) {
 	requesterID, ok := userIDFromContext(c)
+	startDate, endDate, err := parseDateRange(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	if !ok {
 		return
 	}
@@ -197,7 +213,7 @@ func (h *transactionHandler) GetTransactionByUserID(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
 		return
 	}
-	transactionsData, err := h.transactionService.GetTransactionByUserID(requesterID)
+	transactionsData, err := h.transactionService.GetTransactionByUserID(requesterID, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, transactions.ErrTransactionsNotFound) {
 			c.JSON(http.StatusOK, gin.H{"data": []transactions.TransactionResponse{}})
@@ -299,4 +315,34 @@ func (h *transactionHandler) UpdateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": updatedTransaction,
 	})
+}
+
+func parseDateRange(c *gin.Context) (time.Time, time.Time, error) {
+	startParam := c.Query("start_date")
+	endParam := c.Query("end_date")
+	if startParam == "" && endParam == "" {
+		now := time.Now().In(time.Local)
+		start := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
+		return start, start.AddDate(0, 1, 0), nil
+	}
+	if startParam == "" {
+		startParam = endParam
+	}
+	if endParam == "" {
+		endParam = startParam
+	}
+	startDate, err := time.ParseInLocation("2006-01-02", startParam, time.Local)
+	if err != nil {
+		return time.Time{}, time.Time{}, errors.New("start_date tidak valid, gunakan YYYY-MM-DD")
+	}
+	endDate, err := time.ParseInLocation("2006-01-02", endParam, time.Local)
+	if err != nil {
+		return time.Time{}, time.Time{}, errors.New("end_date tidak valid, gunakan YYYY-MM-DD")
+	}
+	if endDate.Before(startDate) {
+		return time.Time{}, time.Time{}, errors.New("end_date tidak boleh sebelum start_date")
+	}
+	start := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.Local)
+	end := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 0, 0, 0, 0, time.Local).AddDate(0, 0, 1)
+	return start, end, nil
 }

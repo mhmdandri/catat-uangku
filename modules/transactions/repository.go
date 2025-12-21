@@ -1,6 +1,8 @@
 package transactions
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -8,11 +10,11 @@ import (
 type Repository interface {
 	Create(transaction Transactions) (Transactions, error)
 	FindByID(ID uuid.UUID) (Transactions, error)
-	FindAllByUserID(userID uuid.UUID) ([]Transactions, error)
+	FindAllByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 	Delete(ID uuid.UUID) error
 	Update(ID uuid.UUID, transaction Transactions) (Transactions, error)
-	GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error)
-	GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error)
+	GetTransactionByAccountID(accountID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
+	GetTransactionByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 }
 
 type repository struct {
@@ -39,7 +41,7 @@ func (r *repository) FindByID(ID uuid.UUID) (Transactions, error) {
 	return transaction, err
 }
 
-func (r *repository) FindAllByUserID(userID uuid.UUID) ([]Transactions, error) {
+func (r *repository) FindAllByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
 	var transactions []Transactions
 	err := r.db.
 		Preload("Category").
@@ -47,8 +49,8 @@ func (r *repository) FindAllByUserID(userID uuid.UUID) ([]Transactions, error) {
 		Preload("TransactionLines.Accounts").
 		Preload("Attachments").
 		Joins("LEFT JOIN group_members gm ON gm.group_id = transactions.group_id AND gm.user_id = ? AND gm.is_active = true", userID).
-		Where("transactions.scope = ? AND transactions.created_by_user_id = ?", "personal", userID).
-		Or("transactions.scope = ? AND gm.user_id IS NOT NULL", "group").
+		Where("transactions.date >= ? AND transactions.date < ?", startDate, endDate).
+		Where("(transactions.scope = ? AND transactions.created_by_user_id = ?) OR (transactions.scope = ? AND gm.user_id IS NOT NULL)", "personal", userID, "group").
 		Order("transactions.created_at DESC").
 		Find(&transactions).Error
 	return transactions, err
@@ -62,7 +64,7 @@ func (r *repository) Update(ID uuid.UUID, transaction Transactions) (Transaction
 	return transaction, err
 }
 
-func (r *repository) GetTransactionByAccountID(accountID uuid.UUID) ([]Transactions, error) {
+func (r *repository) GetTransactionByAccountID(accountID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
 	var transactions []Transactions
 	err := r.db.
 		Preload("Category").
@@ -70,21 +72,21 @@ func (r *repository) GetTransactionByAccountID(accountID uuid.UUID) ([]Transacti
 		Preload("TransactionLines.Accounts").
 		Preload("Attachments").
 		Joins("JOIN transaction_lines tl ON tl.transaction_id = transactions.id").
-		Where("tl.account_id = ?", accountID).
+		Where("tl.account_id = ? AND transactions.date >= ? AND transactions.date < ?", accountID, startDate, endDate).
 		Select("transactions.*").
 		Order("created_at desc").
 		Find(&transactions).Error
 	return transactions, err
 }
 
-func (r *repository) GetTransactionByUserID(userID uuid.UUID) ([]Transactions, error) {
+func (r *repository) GetTransactionByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
 	var transactions []Transactions
 	err := r.db.
 		Preload("Category").
 		Preload("TransactionLines").
 		Preload("TransactionLines.Accounts").
 		Preload("Attachments").
-		Where("created_by_user_id = ?", userID).
+		Where("created_by_user_id = ? AND date >= ? AND date < ?", userID, startDate, endDate).
 		Order("created_at DESC").
 		Find(&transactions).Error
 	return transactions, err
