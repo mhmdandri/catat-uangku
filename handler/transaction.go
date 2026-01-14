@@ -71,7 +71,7 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 // @Tags Transactions
 // @Security BearerAuth
 // @Produce json
-// @Success 200 {object} TransactionListResponse
+// @Success 200 {object} TransactionListSummaryResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 403 {object} ErrorResponse
 // @Router /transactions [get]
@@ -88,7 +88,7 @@ func (h *transactionHandler) GetAllTransactions(c *gin.Context) {
 	transactionList, err := h.transactionService.FindAll(userID, startDate, endDate)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -180,7 +180,45 @@ func (h *transactionHandler) GetTransactionsByAccountID(c *gin.Context) {
 	}
 	tResponse := transactions.FormatTransactionResponses(transactionsData)
 	c.JSON(http.StatusOK, gin.H{
-		"data": tResponse,
+		"summary": transactions.BuildTransactionSummary(transactionsData),
+		"data":    tResponse,
+	})
+}
+
+func (h *transactionHandler) GetTransactionsByGroupID(c *gin.Context) {
+	startDate, endDate, err := parseDateRange(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userID, ok := userIDFromContext(c)
+	if !ok {
+		return
+	}
+	groupID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "group_id tidak valid"})
+		return
+	}
+	transactionsData, err := h.transactionService.GetTransactionByGroupID(userID, groupID, startDate, endDate)
+	if err != nil {
+		if errors.Is(err, common.ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
+			return
+		}
+		if errors.Is(err, transactions.ErrTransactionsNotFound) {
+			c.JSON(http.StatusOK, gin.H{"data": []transactions.TransactionResponse{}})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Gagal mengambil data transactions",
+		})
+		return
+	}
+	tResponse := transactions.FormatTransactionResponses(transactionsData)
+	c.JSON(http.StatusOK, gin.H{
+		"summary": transactions.BuildTransactionSummary(transactionsData),
+		"data":    tResponse,
 	})
 }
 
@@ -216,7 +254,10 @@ func (h *transactionHandler) GetTransactionByUserID(c *gin.Context) {
 	transactionsData, err := h.transactionService.GetTransactionByUserID(requesterID, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, transactions.ErrTransactionsNotFound) {
-			c.JSON(http.StatusOK, gin.H{"data": []transactions.TransactionResponse{}})
+			c.JSON(http.StatusOK, gin.H{
+				"summary": transactions.TransactionSummary{},
+				"data":    []transactions.TransactionResponse{},
+			})
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -226,7 +267,8 @@ func (h *transactionHandler) GetTransactionByUserID(c *gin.Context) {
 	}
 	tResponse := transactions.FormatTransactionResponses(transactionsData)
 	c.JSON(http.StatusOK, gin.H{
-		"data": tResponse,
+		"summary": transactions.BuildTransactionSummary(transactionsData),
+		"data":    tResponse,
 	})
 }
 

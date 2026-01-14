@@ -36,7 +36,7 @@ func (h *userHandler) GetAllUsers(c *gin.Context) {
 	userData, err := h.userService.FindByID(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}

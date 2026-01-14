@@ -13,6 +13,12 @@ type GroupResponse struct {
 	Members []groupmembers.GroupMemberResponse `json:"members,omitempty"`
 }
 
+type GroupSummaryResponse struct {
+	TotalGroups       int   `json:"totalGroups"`
+	TotalMembers      int   `json:"totalMembers"`
+	TotalTransactions int64 `json:"totalTransactions"`
+}
+
 func FormatGroupResponse(group Group) GroupResponse {
 	return GroupResponse{
 		ID:      group.ID,
@@ -28,4 +34,20 @@ func FormatGroupResponses(groups []Group) []GroupResponse {
 		formatted = append(formatted, FormatGroupResponse(group))
 	}
 	return formatted
+}
+
+func BuildGroupSummary(groups []Group, totalTransactions int64) GroupSummaryResponse {
+	totalMembers := 0
+	for _, group := range groups {
+		for _, member := range group.GroupMembers {
+			if member.IsActive {
+				totalMembers++
+			}
+		}
+	}
+	return GroupSummaryResponse{
+		TotalGroups:       len(groups),
+		TotalMembers:      totalMembers,
+		TotalTransactions: totalTransactions,
+	}
 }

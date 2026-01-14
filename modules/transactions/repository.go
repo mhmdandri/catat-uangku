@@ -15,6 +15,7 @@ type Repository interface {
 	Update(ID uuid.UUID, transaction Transactions) (Transactions, error)
 	GetTransactionByAccountID(accountID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 	GetTransactionByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
+	GetTransactionByGroupID(groupID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 }
 
 type repository struct {
@@ -77,6 +78,21 @@ func (r *repository) GetTransactionByAccountID(accountID uuid.UUID, startDate, e
 		Order("created_at desc").
 		Find(&transactions).Error
 	return transactions, err
+}
+
+func (r *repository) GetTransactionByGroupID(groupID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
+	{
+		var transactions []Transactions
+		err := r.db.
+			Preload("Category").
+			Preload("TransactionLines").
+			Preload("TransactionLines.Accounts").
+			Preload("Attachments").
+			Where("group_id = ? AND date >= ? AND date < ?", groupID, startDate, endDate).
+			Order("created_at DESC").
+			Find(&transactions).Error
+		return transactions, err
+	}
 }
 
 func (r *repository) GetTransactionByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {

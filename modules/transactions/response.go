@@ -4,6 +4,7 @@ import (
 	"catatan-keuangan/modules/attachments"
 	"catatan-keuangan/modules/categories"
 	transactionlines "catatan-keuangan/modules/transaction_lines"
+	"math"
 
 	"github.com/google/uuid"
 )
@@ -22,6 +23,12 @@ type TransactionResponse struct {
 	Category         categories.CategoryMini                    `json:"category"`
 	TransactionLines []transactionlines.TransactionLineResponse `json:"transaction_lines,omitempty"`
 	Attachments      []attachments.AttachmentResponse           `json:"attachments,omitempty"`
+}
+
+type TransactionSummary struct {
+	TotalCount   int64   `json:"totalCount"`
+	TotalIncome  float64 `json:"totalIncome"`
+	TotalExpense float64 `json:"totalExpense"`
 }
 
 func FormatTransactionResponse(t Transactions) TransactionResponse {
@@ -48,4 +55,22 @@ func FormatTransactionResponses(ts []Transactions) []TransactionResponse {
 		formatted = append(formatted, FormatTransactionResponse(t))
 	}
 	return formatted
+}
+
+func BuildTransactionSummary(ts []Transactions) TransactionSummary {
+	var totalIncome float64
+	var totalExpense float64
+	for _, t := range ts {
+		switch t.Type {
+		case "income":
+			totalIncome += t.TotalAmount
+		case "expense":
+			totalExpense += math.Abs(t.TotalAmount)
+		}
+	}
+	return TransactionSummary{
+		TotalCount:   int64(len(ts)),
+		TotalIncome:  totalIncome,
+		TotalExpense: totalExpense,
+	}
 }

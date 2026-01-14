@@ -48,7 +48,7 @@ func (h *groupHandler) CreateGroupHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -128,12 +128,21 @@ func (h *groupHandler) GetGroupByUserID(c *gin.Context) {
 		})
 		return
 	}
-	var groupsResponse []groups.GroupResponse
+	groupIDs := make([]uuid.UUID, 0, len(groupsData))
 	for _, group := range groupsData {
-		groupResp := groups.FormatGroupResponse(group)
-		groupsResponse = append(groupsResponse, groupResp)
+		groupIDs = append(groupIDs, group.ID)
 	}
+	totalTransactions, err := h.groupService.CountGroupTransactions(groupIDs)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Gagal mengambil ringkasan grup",
+		})
+		return
+	}
+	groupsResponse := groups.FormatGroupResponses(groupsData)
+	summary := groups.BuildGroupSummary(groupsData, totalTransactions)
 	c.JSON(http.StatusOK, gin.H{
-		"data": groupsResponse,
+		"summary": summary,
+		"data":    groupsResponse,
 	})
 }

@@ -23,6 +23,7 @@ type Service interface {
 	Update(userID, ID uuid.UUID, transactionReq TransactionRequest) (Transactions, error)
 	GetTransactionByAccountID(userID, accountID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 	GetTransactionByUserID(userID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
+	GetTransactionByGroupID(userID, groupID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error)
 }
 type service struct {
 	repository        Repository
@@ -255,6 +256,17 @@ func (s *service) GetTransactionByAccountID(userID, accountID uuid.UUID, startDa
 		return nil, err
 	}
 	transactions, err := s.repository.GetTransactionByAccountID(accountID, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+	return transactions, nil
+}
+
+func (s *service) GetTransactionByGroupID(userID, groupID uuid.UUID, startDate, endDate time.Time) ([]Transactions, error) {
+	if err := common.EnsureGroupMember(s.db, groupID, userID); err != nil {
+		return nil, err
+	}
+	transactions, err := s.repository.GetTransactionByGroupID(groupID, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}

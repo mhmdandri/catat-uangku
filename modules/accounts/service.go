@@ -100,6 +100,9 @@ func (s *service) Delete(userID, ID uuid.UUID) (Account, error) {
 	if err := s.ensureAccountAccess(account, userID); err != nil {
 		return Account{}, err
 	}
+	if err := s.ensureNoTransactions(ID); err != nil {
+		return Account{}, err
+	}
 	return s.repository.Delete(account)
 }
 
@@ -126,6 +129,19 @@ func (s *service) ensureAccountAccess(account Account, userID uuid.UUID) error {
 	}
 	if account.OwnerUserID != userID {
 		return common.ErrForbidden
+	}
+	return nil
+}
+
+func (s *service) ensureNoTransactions(accountID uuid.UUID) error {
+	var count int64
+	if err := s.db.Table("transaction_lines").
+		Where("account_id = ?", accountID).
+		Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return ErrTransactionExists
 	}
 	return nil
 }

@@ -47,7 +47,7 @@ func (h *invitationHandler) SendInvitationGroupHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -81,10 +81,10 @@ func (h *invitationHandler) AcceptInvitationGroupHandler(c *gin.Context) {
 	}
 	acceptedInvitation, err := h.invitationService.AcceptInvitationGroup(userID, tokenRequest)
 	if err != nil {
-		if errors.Is(err, common.ErrForbidden) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
-			return
-		}
+		// if errors.Is(err, common.ErrForbidden) {
+		// 	c.JSON(http.StatusForbidden, gin.H{"error": "akses tidak diizinkan"})
+		// 	return
+		// }
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
