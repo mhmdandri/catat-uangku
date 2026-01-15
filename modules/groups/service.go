@@ -13,6 +13,7 @@ type Service interface {
 	Create(userID uuid.UUID, groupRequest GroupRequest) (Group, error)
 	FindByID(userID, ID uuid.UUID) (Group, error)
 	FindGroupByUserID(userID uuid.UUID) ([]Group, error)
+	CountGroupTransactions(groupIDs []uuid.UUID) (int64, error)
 }
 
 type service struct {
@@ -66,4 +67,18 @@ func (s *service) FindByID(userID, ID uuid.UUID) (Group, error) {
 func (s *service) FindGroupByUserID(userID uuid.UUID) ([]Group, error) {
 	groups, err := s.repository.FindGroupByUserID(userID)
 	return groups, err
+}
+
+func (s *service) CountGroupTransactions(groupIDs []uuid.UUID) (int64, error) {
+	if len(groupIDs) == 0 {
+		return 0, nil
+	}
+	var total int64
+	if err := s.db.Table("transactions").
+		Where("group_id IN ?", groupIDs).
+		Where("scope = ?", "group").
+		Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
 }

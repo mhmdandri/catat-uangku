@@ -23,7 +23,7 @@ import (
 type Service interface {
 	Login(loginRequest LoginRequest) (string, string, users.User, error)
 	Refresh(raw string) (string, string, time.Time, users.User, error)
-	Me(userID uuid.UUID) (users.User, error)
+	Me(userID uuid.UUID) (MeResponse, error)
 	Logout(raw string) error
 	Register(registerRequest users.UserRequest) (users.User, error)
 	GoogleLoginURL(state string) string
@@ -35,6 +35,7 @@ type service struct {
 	refreshRepository RefreshRepository
 	profileService    userprofile.Service
 	googleConfig      *oauth2.Config
+	db                *gorm.DB
 }
 type googleUserInfo struct {
 	ID            string `json:"id"`
@@ -49,6 +50,7 @@ func NewService(userRepository users.Repository, refreshRepository RefreshReposi
 		userRepository:    userRepository,
 		refreshRepository: refreshRepository,
 		profileService:    profileService,
+		db:                db,
 		googleConfig: &oauth2.Config{
 			ClientID:     config.Cfg.GoogleClientID,
 			ClientSecret: config.Cfg.GoogleClientSecret,
@@ -193,8 +195,41 @@ func (s *service) Refresh(raw string) (string, string, time.Time, users.User, er
 	return access, raw, rt.ExpiresAt, user, nil
 }
 
-func (s *service) Me(userID uuid.UUID) (users.User, error) {
-	return s.userRepository.FindByID(userID)
+func (s *service) Me(userID uuid.UUID) (MeResponse, error) {
+	user, err := s.userRepository.FindByID(userID)
+	if err != nil {
+		return MeResponse{}, err
+	}
+
+	summary, err := s.buildSummary(userID, user.CreatedAt)
+	if err != nil {
+		return MeResponse{}, err
+	}
+
+	profile := user.Profile
+	firstName := profile.FirstName
+	if firstName == "" {
+		firstName = user.Name
+	}
+
+	userProfile := MeUserProfile{
+		FirstName: firstName,
+		LastName:  stringValue(profile.LastName),
+		Phone:     stringValue(profile.Phone),
+		Address:   stringValue(profile.Address),
+		Bio:       stringValue(profile.Bio),
+		AvatarURL: stringValue(profile.AvatarURL),
+	}
+
+	return MeResponse{
+		Summary:     summary,
+		UserProfile: userProfile,
+		Data: MeData{
+			ID:    user.ID,
+			Name:  user.Name,
+			Email: user.Email,
+		},
+	}, nil
 }
 func (s *service) Logout(raw string) error {
 	hash := hashRaw(raw)
@@ -229,4 +264,86 @@ func (s *service) Register(registerRequest users.UserRequest) (users.User, error
 		return users.User{}, errors.New("gagal membuat profil user")
 	}
 	return newUser, err
+}
+
+func (s *service) buildSummary(userID uuid.UUID, createdAt time.Time) (MeSummary, error) {
+	totalTransaction, err := s.countTransactions(userID)
+	if err != nil {
+		return MeSummary{}, err
+	}
+
+	totalAccount, err := s.countAccounts(userID)
+	if err != nil {
+		return MeSummary{}, err
+	}
+
+	totalGroup, err := s.countGroups(userID)
+	if err != nil {
+		return MeSummary{}, err
+	}
+
+	durationMember := monthsBetween(createdAt, time.Now())
+
+	return MeSummary{
+		TotalTransaction: totalTransaction,
+		TotalAccount:     totalAccount,
+		TotalGroup:       totalGroup,
+		DurationMember:   durationMember,
+	}, nil
+}
+
+func (s *service) countTransactions(userID uuid.UUID) (int64, error) {
+	var total int64
+	if err := s.db.Table("transactions").
+		Where("created_by_user_id = ?", userID).
+		Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func (s *service) countAccounts(userID uuid.UUID) (int64, error) {
+	var total int64
+	if err := s.db.Table("accounts").
+		Joins("LEFT JOIN group_members gm ON gm.group_id = accounts.group_id AND gm.user_id = ? AND gm.is_active = true", userID).
+		Where("accounts.owner_user_id = ?", userID).
+		Or("gm.user_id IS NOT NULL AND accounts.scope = ? AND accounts.is_shared = ?", "group", true).
+		Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func (s *service) countGroups(userID uuid.UUID) (int64, error) {
+	var total int64
+	if err := s.db.Table("groups").
+		Joins("JOIN group_members ON group_members.group_id = groups.id").
+		Where("group_members.user_id = ? AND group_members.is_active = true", userID).
+		Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func stringValue(val *string) string {
+	if val == nil {
+		return ""
+	}
+	return *val
+}
+
+func monthsBetween(start, end time.Time) int64 {
+	if end.Before(start) {
+		return 0
+	}
+	years := end.Year() - start.Year()
+	months := int(end.Month()) - int(start.Month())
+	total := years*12 + months
+	if end.Day() < start.Day() {
+		total--
+	}
+	if total < 0 {
+		return 0
+	}
+	return int64(total)
 }

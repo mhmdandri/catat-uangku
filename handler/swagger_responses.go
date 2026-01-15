@@ -2,6 +2,7 @@ package handler
 
 import (
 	"catatan-keuangan/modules/accounts"
+	"catatan-keuangan/modules/auth"
 	"catatan-keuangan/modules/categories"
 	"catatan-keuangan/modules/groups"
 	"catatan-keuangan/modules/invitations"
@@ -34,6 +35,12 @@ type UserDataResponse struct {
 	Data users.UserResponse `json:"data"`
 }
 
+type AuthMeResponse struct {
+	Summary     auth.MeSummary     `json:"summary"`
+	UserProfile auth.MeUserProfile `json:"userProfile"`
+	Data        auth.MeData        `json:"data"`
+}
+
 type UsersDataResponse struct {
 	Data []users.UserResponse `json:"data"`
 }
@@ -47,7 +54,8 @@ type AccountDataResponse struct {
 }
 
 type AccountsDataResponse struct {
-	Data []accounts.AccountResponse `json:"data"`
+	Summary []accounts.AccountSummaryResponse  `json:"summary"`
+	Data    []accounts.AccountListItemResponse `json:"data"`
 }
 
 type AccountUpdateResponse struct {
@@ -60,7 +68,8 @@ type GroupDataResponse struct {
 }
 
 type GroupsDataResponse struct {
-	Data []groups.GroupResponse `json:"data"`
+	Summary groups.GroupSummaryResponse `json:"summary"`
+	Data    []groups.GroupResponse      `json:"data"`
 }
 
 type InvitationDataResponse struct {
@@ -85,4 +94,9 @@ type TransactionResponseBody struct {
 
 type TransactionListResponse struct {
 	Data []transactions.TransactionResponse `json:"data"`
+}
+
+type TransactionListSummaryResponse struct {
+	Summary transactions.TransactionSummary    `json:"summary"`
+	Data    []transactions.TransactionResponse `json:"data"`
 }

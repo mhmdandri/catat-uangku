@@ -215,7 +215,7 @@ func (h *authHandler) RefreshToken(c *gin.Context) {
 // @Tags Auth
 // @Security BearerAuth
 // @Produce json
-// @Success 200 {object} UserDataResponse
+// @Success 200 {object} AuthMeResponse
 // @Failure 401 {object} ErrorResponse
 // @Router /auth/me [get]
 func (h *authHandler) Me(c *gin.Context) {
@@ -237,7 +237,7 @@ func (h *authHandler) Me(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": users.FormatUserResponse(user)})
+	c.JSON(http.StatusOK, user)
 }
 
 // Logout godoc

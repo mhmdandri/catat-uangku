@@ -49,7 +49,7 @@ func (h *accountHandler) CreateAccountHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -230,6 +230,7 @@ func (h *accountHandler) GetAccountByUserIDHandler(c *gin.Context) {
 		})
 		return
 	}
-	accountResponses := accounts.FormatAccountResponses(accountsData)
-	c.JSON(http.StatusOK, gin.H{"data": accountResponses})
+	accountResponses := accounts.FormatAccountListItemResponses(accountsData)
+	summary := accounts.BuildAccountSummaryByCurrency(accountsData)
+	c.JSON(http.StatusOK, gin.H{"summary": summary, "data": accountResponses})
 }

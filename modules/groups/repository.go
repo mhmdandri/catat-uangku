@@ -32,7 +32,9 @@ func (r *repository) FindByID(ID uuid.UUID) (Group, error) {
 
 func (r *repository) FindGroupByUserID(userID uuid.UUID) ([]Group, error) {
 	var groups []Group
-	err := r.db.Joins("JOIN group_members ON group_members.group_id = groups.id").
+	err := r.db.
+		Preload("GroupMembers").
+		Joins("JOIN group_members ON group_members.group_id = groups.id").
 		Where("group_members.user_id = ? AND group_members.is_active = true", userID).
 		Find(&groups).Error
 	return groups, err

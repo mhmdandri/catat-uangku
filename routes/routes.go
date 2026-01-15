@@ -88,5 +88,6 @@ func InitRoutes(r *gin.Engine) {
 		v1.GET("/transactions/user/:id", transactionHandler.GetTransactionByUserID)
 		v1.DELETE("/transactions/:id", transactionHandler.DeleteTransaction)
 		v1.PUT("/transactions/:id", transactionHandler.UpdateTransaction)
+		v1.GET("/transactions/group/:id", transactionHandler.GetTransactionsByGroupID)
 	}
 }
